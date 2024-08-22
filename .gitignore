@@ -1,0 +1,50 @@
+# LaTeX project proposal gitignore
+
+# LaTeX build files
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# LaTeX intermediate files
+*.bbl
+*.blg
+*.dvi
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+
+# LaTeX generated files
+*.pdf
+
+# Ignore temporary files
+*~
+
+# Ignore backup files
+*.bak
+*.swp
+
+# Ignore compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Ignore package manager directories
+/node_modules
+/vendor
+
+# Ignore IDE and editor specific files
+/.vscode
+/.idea
+*.sublime-project
+*.sublime-workspace
+
+# Ignore system files
+.DS_Store
+Thumbs.db
