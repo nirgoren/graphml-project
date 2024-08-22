@@ -9,10 +9,14 @@
 
 \maketitle
 
-\section{Introduction}
-Provide an introduction to your project, including the problem statement and its significance.
+\section{Point Cloud Upsampling using Diffusion on Features with GNNs}
+We propose a novel method for point cloud upsampling using diffusion on features with Graph Neural Networks (GNNs).
+The task of point cloud upsampling is to generate a denser point cloud from a sparse one, while preserving the underlying structure of the object.
 
-\section{Objectives}
+We plan to tackle this problem by first constructing a graph from the input point cloud, where the nodes represent the points and the edges represent the local neighborhood relations based on distance.
+The features of the nodes are the xyz coordinates of the corresponding points. During training, the features of some subset of the nodes will have random noise added from a Gaussian distribution.
+We will then feed the graph into a GNN, which will learn to denoise the noised features by trying to minimize the MSE between the predicted to the added noise. During inference, a sparse point cloud will be upsampled by adding new nodes to the graph, initialized in proximity to the existing nodes by adding random Gaussian noise. The network will then predict the features of the new nodes, which will be used to generate the denser point cloud.
+\section{Datasets and Evaluation}
 List the objectives of your project, describing what you aim to achieve.
 
 \section{Methodology}
