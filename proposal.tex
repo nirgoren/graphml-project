@@ -1,9 +1,13 @@
 \documentclass{article}
 \usepackage{biblatex}
+\usepackage[colorlinks=true]{hyperref}
 
 \title{Deep Learning with Graphs - Project Proposal}
 \author{Nir Goren 313452781 \\ Yuval Reshef 206184897}
 \date{\today}
+
+\addbibresource{references.bib}
+
 
 \begin{document}
 
@@ -11,28 +15,17 @@
 
 \section{Point Cloud Upsampling using Diffusion on Features with GNNs}
 We propose a novel method for point cloud upsampling using diffusion on features with Graph Neural Networks (GNNs).
-The task of point cloud upsampling is to generate a denser point cloud from a sparse one, while preserving the underlying structure of the object.
+The task of point cloud upsampling is to generate a denser point cloud from a sparse one \cite{PU-GCN,Qu_2024_CVPR}, while preserving the underlying structure of the object.
 
-We plan to tackle this problem by first constructing a graph from the input point cloud, where the nodes represent the points and the edges represent the local neighborhood relations based on distance.
+We plan to tackle this problem using diffusion \cite{ConGNN_2024}, which was recently shown to work well for image super-resolution \cite{yue2023resshift}, by first constructing a graph from the input point cloud, where the nodes represent the points and the edges represent the local neighborhood relations based on distance.
 The features of the nodes are the xyz coordinates of the corresponding points. During training, the features of some subset of the nodes will have random noise added from a Gaussian distribution.
 We will then feed the graph into a GNN, which will learn to denoise the noised features by trying to minimize the MSE between the predicted to the added noise. During inference, a sparse point cloud will be upsampled by adding new nodes to the graph, initialized in proximity to the existing nodes by adding random Gaussian noise. The network will then predict the features of the new nodes, which will be used to generate the denser point cloud.
-\section{Datasets and Evaluation}
-List the objectives of your project, describing what you aim to achieve.
 
-\section{Methodology}
-Explain the methodology you plan to use to accomplish your objectives.
-
-\section{Timeline}
-Present a timeline for your project, outlining the major milestones and deadlines.
+\section{Evaluation}
+We will evaluate our method across different datasets by comparing it to existing point cloud upsampling with commonly used metrics such as Chamfer distance, Hausdorff distance, and point-to-surfaces distance.
 
 \section{Assumptions and Requirements}
-Specify the resources you will need to complete your project, such as software, hardware, and data.
-
-\section{Expected Results}
-Describe the expected results and outcomes of your project.
-
-\section{Conclusion}
-Summarize your proposal and reiterate its importance.
+We have access to GPUs for training and evaluating the model. We will use freely available point cloud datasets for training and evaluation.
 
 \printbibliography
 \end{document}
