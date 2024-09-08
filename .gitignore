@@ -51,6 +51,13 @@
 .DS_Store
 Thumbs.db
 
+# Byte-compiled / optimized / DLL python files
+__pycache__/
+*.py[cod]
+*$py.class
+
 /env
 *.xyz
 *.h5
+/bin
+*.zip
