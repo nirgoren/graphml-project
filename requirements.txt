@@ -2,4 +2,5 @@ open3d==0.18.0
 h5py
 numpy
 torch
+torch_geometric
 gdown

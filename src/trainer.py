@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from .data.dataset import PU1KTrainDataset
+from data.dataset import PU1KTrainDataset
 
 
 class Trainer:
@@ -12,7 +12,7 @@ class Trainer:
 
     def get_train_dataloader(self, shuffle=True, normalize=True, **kwargs):
         return DataLoader(
-            PU1KTrainDataset(normalize=normalize),
+            PU1KTrainDataset(normalize=normalize, **kwargs),
             batch_size=self.batch_size,
             shuffle=shuffle,
             **kwargs,
