@@ -2,7 +2,8 @@
 \usepackage{biblatex}
 \usepackage[colorlinks=true]{hyperref}
 
-\title{Deep Learning with Graphs - Project Proposal}
+\title{Deep Learning with Graphs - Project Proposal 
+\\{ \large Point Cloud Normal Estimation using Diffusion with GNNs}}
 \author{Nir Goren 313452781 \\ Yuval Reshef 206184897}
 \date{\today}
 
@@ -13,17 +14,29 @@
 
 \maketitle
 
-\section{Point Cloud Normal Estimation using Diffusion on Features with GNNs}
-We propose a novel method for point cloud normal estimation using diffusion on features, with Graph Neural Networks (GNNs) serving as backbone.
-The task of point cloud normal estimation is a fundamental problem in computer vision and graphics. Commonly, scanned point clouds only contain spatial coordinates and lack surface normals which are crucial for many applications such as surface reconstruction and model segmentation. Some traditional methods for normal estimation include PCA-based methods and fitting planes to local neighborhoods. However, these methods are sensitive to noise and outliers, and are not robust to non-uniform sampling. In recent years, deep learning methods have been proposed for normal estimation, such as PointNet and Nesti-Net, and some methods that combine deep learning with classical geometry-based methods, such as IterNet and DeepFit. More recently, methods that use GNNs for normal estimation have been proposed, such as GraphFit which uses graph-convolutional layers for feature learning and normal estimation.
+We propose a novel method for point cloud normal estimation by constructing a graph from point clouds based and proximity, and estimating the normals using a Denoising Diffusion Probabilistic Model acting on a graph's features, with Graph Neural Networks (GNNs) serving as the denoising kernel.
 
-Due to the recent success of diffusion in various fields, we propose to use diffusion for point cloud normal estimation, using GNNs as the backbone model for the diffusion process. We believe that diffusion can be used to improve the robustness of the normal estimation to noise and outliers, and to improve the quality of the normal estimation compared to existing methods. Using GNNs as the backbone for diffusion has been shown to be successful in fields such as anomaly detection and protein generation (chroma).
+\section{Point Cloud Normal Estimation}
+The task of point cloud normal estimation is a fundamental problem in computer vision and graphics. This task deals with estimating surface normals for point clouds, which are sets of points in 3D space distributed over a surface of an object. While point-clouds can be created synthetically by sampling the surface of 3d meshes, point clouds are usually created from sensory data such as 3D scanners, LiDAR scanners and via 3D reconstruction techniques from images or video (SfM, VSLAM). Some algorithms acting on point-clouds also require a surface normal for each point (such as surface reconstruction \cite{kazhdan2006poisson, fleishman2005robust}, point cloud denoising \cite{lu2020low} and model segmentation \cite{che2018multi}), and while some point-cloud acquisition techniques also provide the surface normals (like some 3D scanners), many do not, requiring the estimation of the normals.
 
-We plan to tackle this problem by first constructing a graph from the input point cloud, where the nodes represent the points and the edges represent the local neighborhood relations based on distance.
+\section{Previous Approaches}
+Some traditional methods for normal estimation include PCA-based methods \cite{alliez2007voronoi,dey2006normal,hoppe1992surface}, fitting geometric primitives to local neighborhoods \cite{cazals2005estimating,guennebaud2007algebraic}, and moving least squares \cite{levin1998approximation}. However, these methods are sensitive to noise and outliers, and are not robust to non-uniform sampling.
+
+In recent years, deep learning methods have been proposed for normal estimation.
+Some of the earliest such approaches, used patches created from each point's neighborhood to regress the normal, this is done, for example, by utilizing 2D CNNs on the hough accumulator after performing hough transform for each normal \cite{boulch2016deep}, or on a height map generated from each patch \cite{roveri2018pointpronets,zhou2022refine}. Some methods \cite{guerrero2018pcpnet,sharma2021point} use PointNet \cite{qi2017pointnet} (a model architecture for acting directly on point-clouds) to regress the normals from local patches. Other methods combine learning with classical-geometric approaches, such as IterNet \cite{lenssen2020deep} and DeepFit \cite{ben2020deepfit}, which use deep learning to learn weights for weighted least squares. 
+
+More recent methods include GraphFit \cite{li2022graphfit} which uses GNNs with attention to directly predict the normals as node features, MSECNet \cite{xiu2023msecnet} which learns edge-based contextual information to predict the normals, NeAF \cite{li2023neaf} which predicts the angle offset between the ground truth normal and a randomly sampled query normal, and HSurf-Net \cite{li2022hsurf} which fits hyper-surfaces to the points in a high dimensional feature space, which are used for normal.
+
+
+\section{Diffusion on Graphs}
+Due to the recent success of denoising diffusion models \cite{ho2020denoising} in various fields \cite{cao2024survey,yang2023diffusion}, we propose to use diffusion for point cloud normal estimation, using GNNs as the denoising kernel for the diffusion process. We believe that diffusion can be used to improve the robustness of the normal estimation to noise and outliers, and to improve the quality of the normal estimation compared to existing methods. Using GNNs as the denoising kernel for diffusion has been shown to be successful in fields such as anomaly detection \cite{ConGNN_2024} and protein generation \cite{ingraham2023illuminating}.
+
+\section{Proposed Method}
+We plan to tackle this problem by first constructing a graph from the input point cloud, where the nodes represent the points and the edges represent the local neighborhood relations based on proximity in 3D space.
 The features of the nodes are the normal directions of the corresponding points. During training, the features will be noised by adding random Gaussian noise, and the GNN based diffusion process will be trained to denoise the features by minimizing the MSE between the predicted to the added noise, while additionally being conditioned on the 3D coordinates of the points. During inference, the network will gradually denoise the features of the nodes which will be initialized with random Gaussian noise.
 
 \section{Evaluation}
-We will train and evaluate our model on the PCPNet dataset by comparing the RMSE of angles between the predicted normals and the ground truth normals to the state-of-the-art methods. We will also evaluate the robustness of our model to noise and outliers by adding random Gaussian noise to the input point cloud.
+We will train and evaluate our model on the synthetic PCPNet dataset \cite{guerrero2018pcpnet} and the real-word SceneNN dataset \cite{scenenn-3dv16} by comparing the RMSE of angles between the predicted normals and the ground truth normals to the state-of-the-art methods. We will also evaluate the robustness of our model to noise and outliers by adding random Gaussian noise to the input point cloud.
 
 \section{Assumptions and Requirements}
 We have access to GPUs for training and evaluating the model. We will use freely available point cloud datasets like PCPNet for training and evaluation.
