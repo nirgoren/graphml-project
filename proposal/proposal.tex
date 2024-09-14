@@ -13,19 +13,20 @@
 
 \maketitle
 
-\section{Point Cloud Upsampling using Diffusion on Features with GNNs}
-We propose a novel method for point cloud upsampling using diffusion on features with Graph Neural Networks (GNNs).
-The task of point cloud upsampling is to generate a denser point cloud from a sparse one \cite{PU-GCN,Qu_2024_CVPR}, while preserving the underlying structure of the object.
+\section{Point Cloud Normal Estimation using Diffusion on Features with GNNs}
+We propose a novel method for point cloud normal estimation using diffusion on features, with Graph Neural Networks (GNNs) serving as backbone.
+The task of point cloud normal estimation is a fundamental problem in computer vision and graphics. Commonly, scanned point clouds only contain spatial coordinates and lack surface normals which are crucial for many applications such as surface reconstruction and model segmentation. Some traditional methods for normal estimation include PCA-based methods and fitting planes to local neighborhoods. However, these methods are sensitive to noise and outliers, and are not robust to non-uniform sampling. In recent years, deep learning methods have been proposed for normal estimation, such as PointNet and Nesti-Net, and some methods that combine deep learning with classical geometry-based methods, such as IterNet and DeepFit. More recently, methods that use GNNs for normal estimation have been proposed, such as GraphFit which uses graph-convolutional layers for feature learning and normal estimation.
 
-We plan to tackle this problem using diffusion \cite{ConGNN_2024}, which was recently shown to work well for image super-resolution \cite{yue2023resshift}, by first constructing a graph from the input point cloud, where the nodes represent the points and the edges represent the local neighborhood relations based on distance.
-The features of the nodes are the xyz coordinates of the corresponding points. During training, the features of some subset of the nodes will have random noise added from a Gaussian distribution.
-We will then feed the graph into a GNN, which will learn to denoise the noised features by trying to minimize the MSE between the predicted to the added noise. During inference, a sparse point cloud will be upsampled by adding new nodes to the graph, initialized in proximity to the existing nodes by adding random Gaussian noise. The network will then predict the features of the new nodes, which will be used to generate the denser point cloud.
+Due to the recent success of diffusion in various fields, we propose to use diffusion for point cloud normal estimation, using GNNs as the backbone model for the diffusion process. We believe that diffusion can be used to improve the robustness of the normal estimation to noise and outliers, and to improve the quality of the normal estimation compared to existing methods. Using GNNs as the backbone for diffusion has been shown to be successful in fields such as anomaly detection and protein generation (chroma).
+
+We plan to tackle this problem by first constructing a graph from the input point cloud, where the nodes represent the points and the edges represent the local neighborhood relations based on distance.
+The features of the nodes are the normal directions of the corresponding points. During training, the features will be noised by adding random Gaussian noise, and the GNN based diffusion process will be trained to denoise the features by minimizing the MSE between the predicted to the added noise, while additionally being conditioned on the 3D coordinates of the points. During inference, the network will gradually denoise the features of the nodes which will be initialized with random Gaussian noise.
 
 \section{Evaluation}
-We will evaluate our method across different datasets by comparing it to existing point cloud upsampling with commonly used metrics such as Chamfer distance, Hausdorff distance, and point-to-surfaces distance.
+We will train and evaluate our model on the PCPNet dataset by comparing the RMSE of angles between the predicted normals and the ground truth normals to the state-of-the-art methods. We will also evaluate the robustness of our model to noise and outliers by adding random Gaussian noise to the input point cloud.
 
 \section{Assumptions and Requirements}
-We have access to GPUs for training and evaluating the model. We will use freely available point cloud datasets for training and evaluation.
+We have access to GPUs for training and evaluating the model. We will use freely available point cloud datasets like PCPNet for training and evaluation.
 
 \printbibliography
 \end{document}
