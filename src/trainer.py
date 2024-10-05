@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from data.dataset import PU1KTrainDataset
+from data.get_pcpnet_dataset import PU1KTrainDataset
 
 
 class Trainer:

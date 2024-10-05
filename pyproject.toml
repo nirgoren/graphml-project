@@ -1,0 +1,11 @@
+[project]
+name = "project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.11.10"
+dependencies = [
+    "torch>=2.4.1",
+    "torch-geometric>=2.6.1",
+    "open3d>=0.18.0",
+]
