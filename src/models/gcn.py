@@ -1,0 +1,1 @@
+# implement gcn model that takes a graph with nodes that have positional features (xyz) and noised normal features (normalized xyz) and timestamp t and predicts the denoised xyz
