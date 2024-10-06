@@ -61,3 +61,5 @@ __pycache__/
 *.h5
 /bin
 *.zip
+
+data/
