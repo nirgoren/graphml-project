@@ -4,8 +4,6 @@ import numpy as np
 from scipy.stats import vonmises_fisher
 from tqdm import tqdm
 
-from normal_diffusion.utils.visualization import visualize_pcd
-
 
 # TODO: perhaps optimize this?
 def add_von_mises_fisher_noise(data, kappa):
@@ -32,6 +30,8 @@ def von_mises_fisher_loss(data, predicted_data):
 
 
 if __name__ == "__main__":
+    from ..utils.visualization import visualize_pcd
+
     data = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]).astype(np.float64)
     kappa = 20
     noisy_data = add_von_mises_fisher_noise(data, kappa)

@@ -3,13 +3,21 @@ name = "normal_diffusion"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = "==3.11.10"
+requires-python = "~=3.11.10"
 dependencies = [
-    "torch>=2.4.1",
-    "torch-geometric>=2.6.1",
-    "open3d>=0.18.0",
-    "scikit-learn>=1.5.2",
-    "ipython>=8.28.0",
+    "torch~=2.4.1",
+    "torch-geometric~=2.6.1",
+    "open3d~=0.18.0",
+    "scikit-learn~=1.5.2",
+    "torch-scatter~=2.1.2",
+    "torch-sparse~=0.6.18",
+    "torch-cluster~=1.6.3",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "ipython",
+    "ruff"
 ]
 
 [build-system]

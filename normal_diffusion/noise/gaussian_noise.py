@@ -1,4 +1,3 @@
-from normal_diffusion.utils.visualization import visualize_pcd
 import torch
 
 
@@ -16,6 +15,8 @@ def gaussian_noise_loss(data, predicted_data):
 
 
 if __name__ == "__main__":
+    from ..utils.visualization import visualize_pcd
+
     mu = torch.tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=torch.float32)
     sigma = 0.1
     noisy_mu = add_gaussian_noise(mu, sigma)

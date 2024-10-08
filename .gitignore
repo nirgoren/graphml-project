@@ -57,9 +57,10 @@ __pycache__/
 *$py.class
 
 /env
+/.venv
 *.xyz
 *.h5
 /bin
 *.zip
 
-data/
+/data
