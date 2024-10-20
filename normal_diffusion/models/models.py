@@ -2,7 +2,7 @@
 
 from torch import nn
 from torch_geometric.nn import GCNConv
-from .utils import BackboneWrapper, Sequential, Activation, ConcatCondition
+from normal_diffusion.models.utils import BackboneWrapper, Sequential, Activation, ConcatCondition
 
 
 def GCNModel(hidden_dim: int = 64, **gcnconv_kwargs):
@@ -15,7 +15,7 @@ def GCNModel(hidden_dim: int = 64, **gcnconv_kwargs):
     return BackboneWrapper(
         Sequential(
             ConcatCondition(
-                GCNConv(7, hidden_dim, **gcnconv_kwargs), condition_on=["pos", "t"]
+                GCNConv(3+4, hidden_dim, **gcnconv_kwargs), condition_on=["pos", "t"]
             ),
             Activation(nn.ReLU()),
             ConcatCondition(

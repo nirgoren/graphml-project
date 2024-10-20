@@ -29,7 +29,7 @@ class BackboneWrapper(nn.Module):
         if (
             self.use_sparse_adj
             and hasattr(graph_data, "adj_t")
-            and self.adj_t is not None
+            and graph_data.adj_t is not None
         ):
             kwargs["edge_index"] = graph_data.adj_t
         else:
@@ -38,31 +38,31 @@ class BackboneWrapper(nn.Module):
         if (
             self.use_edge_weight
             and hasattr(graph_data, "edge_weight")
-            and self.edge_weight is not None
+            and graph_data.edge_weight is not None
         ):
             kwargs["edge_weight"] = graph_data.edge_weight
 
-        return self.module(x)
+        return self.module(x, **kwargs)
 
 
 class Parallel(nn.Module):
     def __init__(self, *modules: nn.Module, reduction=torch.add):
         super().__init__()
-        self.modules = nn.ModuleList(modules)
+        self.modules_ = nn.ModuleList(modules)
         self.reduction = reduction
 
     def forward(self, x, **kwargs):
-        results = (module(x, **kwargs) for module in self.modules)
+        results = (module(x, **kwargs) for module in self.modules_)
         return reduce(self.reduction, results)
 
 
 class Sequential(nn.Module):
     def __init__(self, *modules: nn.Module):
         super().__init__()
-        self.modules = nn.ModuleList(modules)
+        self.modules_ = nn.ModuleList(modules)
 
     def forward(self, x, **kwargs):
-        for module in self.modules:
+        for module in self.modules_:
             x = module(x, **kwargs)
         return x
 
@@ -89,6 +89,6 @@ class ConcatCondition(nn.Module):
             c = kwargs.pop(condition)
             if not isinstance(c, torch.Tensor):
                 c = torch.tensor(c, device=x.device, dtype=x.dtype)
-            c = c.expand(x.shape[:1], -1)
-            x = torch.concat((x, c), dim=-1)
+                c = c.expand(x.size(0), 1)
+            x = torch.cat((x, c), dim=-1)
         return self.module(x, **kwargs)

@@ -2,7 +2,7 @@ import open3d
 import open3d.visualization
 from torch_geometric.datasets import PCPNetDataset
 from torch_geometric.transforms import ToSparseTensor, KNNGraph, Compose
-from .transforms import DistanceToEdgeWeight
+from normal_diffusion.data.transforms import DistanceToEdgeWeight
 import numpy as np
 
 # Choose the root directory where you want to save the dataset
