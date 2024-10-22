@@ -5,7 +5,7 @@ from torch_geometric.nn import GCNConv
 from normal_diffusion.models.utils import BackboneWrapper, Sequential, Activation, ConcatCondition
 
 
-def GCNModel(hidden_dim: int = 64, **gcnconv_kwargs):
+def GCNModel(hidden_dim: int = 64, time_embed_dim: int = 32, **gcnconv_kwargs):
     """
     example usage:
         graph_data = pg.data.Data(x=noisy_normals, pos=positions, edge_index or adj_t)
@@ -15,16 +15,16 @@ def GCNModel(hidden_dim: int = 64, **gcnconv_kwargs):
     return BackboneWrapper(
         Sequential(
             ConcatCondition(
-                GCNConv(3+4, hidden_dim, **gcnconv_kwargs), condition_on=["pos", "t"]
+                GCNConv(3+3+time_embed_dim, hidden_dim, **gcnconv_kwargs), condition_on=["pos", "t"]
             ),
             Activation(nn.ReLU()),
             ConcatCondition(
-                GCNConv(hidden_dim + 4, hidden_dim, **gcnconv_kwargs),
+                GCNConv(hidden_dim + 3 + time_embed_dim, hidden_dim, **gcnconv_kwargs),
                 condition_on=["pos", "t"],
             ),
             Activation(nn.ReLU()),
             ConcatCondition(
-                GCNConv(hidden_dim + 4, 3, **gcnconv_kwargs), condition_on=["pos", "t"]
+                GCNConv(hidden_dim + 3 + time_embed_dim, 3, **gcnconv_kwargs), condition_on=["pos", "t"]
             ),
-        )
+        ), time_embed_dim=time_embed_dim
     )

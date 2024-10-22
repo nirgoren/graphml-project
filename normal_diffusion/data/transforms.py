@@ -29,3 +29,15 @@ class DistanceToEdgeWeight(BaseTransform):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(temperature={self.temperature})"
+
+class KeepNormals(BaseTransform):
+    r"""Keeps the normal vectors in the data object.
+    """
+
+    def forward(self, data: Data) -> Data:
+        assert data.x is not None
+        data.x = data.x[:, :3].clone()
+        return data
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"

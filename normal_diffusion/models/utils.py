@@ -1,8 +1,22 @@
 from functools import reduce
+import math
 import torch
 from torch import nn
 from torch_geometric.data import Data as GraphData
 
+class SinusoidalTimeEmbedding(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.dim = dim
+
+    def forward(self, time):
+        device = time.device
+        half_dim = self.dim // 2
+        embeddings = math.log(10000) / (half_dim - 1)
+        embeddings = torch.exp(torch.arange(half_dim, device=device) * -embeddings)
+        embeddings = time[:, None] * embeddings[None, :]
+        embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
+        return embeddings
 
 class BackboneWrapper(nn.Module):
     def __init__(
@@ -11,8 +25,10 @@ class BackboneWrapper(nn.Module):
         use_sparse_adj=True,
         use_edge_weight=True,
         pass_pos_in_kwargs=True,
+        time_embed_dim=32,
     ):
         super().__init__()
+        self.time_embed = SinusoidalTimeEmbedding(time_embed_dim)
         self.module = module
         self.use_sparse_adj = use_sparse_adj
         self.use_edge_weight = use_edge_weight
@@ -21,8 +37,9 @@ class BackboneWrapper(nn.Module):
     def forward(self, graph_data: GraphData, t, **kwargs):
         x = graph_data.x
 
-        kwargs["t"] = t
+        kwargs["t"] = self.time_embed(t)
 
+        # TODO: Maybe we also want sinusoidal embeddings for the positions (like in Nerfs)
         if self.pass_pos_in_kwargs:
             kwargs["pos"] = graph_data.pos
 
@@ -87,8 +104,5 @@ class ConcatCondition(nn.Module):
     def forward(self, x, **kwargs):
         for condition in self.condition_on:
             c = kwargs.pop(condition)
-            if not isinstance(c, torch.Tensor):
-                c = torch.tensor(c, device=x.device, dtype=x.dtype)
-                c = c.expand(x.size(0), 1)
             x = torch.cat((x, c), dim=-1)
         return self.module(x, **kwargs)
