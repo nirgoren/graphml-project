@@ -15,6 +15,7 @@ dependencies = [
     "diffusers>=0.31.0",
     "pyg-lib>=0.4.0",
 ]
+emit-find-links = true
 
 [tool.uv.sources]
 torch = [
@@ -25,11 +26,13 @@ pyg-lib = [
     { url = "https://data.pyg.org/whl/torch-2.4.0%2Bcu118/pyg_lib-0.4.0%2Bpt24cu118-cp311-cp311-linux_x86_64.whl", marker="sys_platform != 'darwin'" },
 ]
 
-
 [[tool.uv.index]]
 name = "torch-cu118"
 url = "https://download.pytorch.org/whl/cu118"
 
+[tool.uv.pip]
+find-links = ["https://data.pyg.org/whl/torch-2.4.0+cu118.html",
+              "https://data.pyg.org/whl/torch-2.4.0+cpu.html"]
 
 [tool.uv]
 dev-dependencies = [
