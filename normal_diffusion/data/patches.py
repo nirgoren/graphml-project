@@ -1,6 +1,7 @@
 from torch_geometric.data import Batch, Dataset
 from torch_geometric.loader import NeighborLoader
 from torch_geometric.transforms import BaseTransform
+from itertools import islice
 
 
 class PatchDataloader(NeighborLoader):
@@ -11,12 +12,11 @@ class PatchDataloader(NeighborLoader):
         K: int = 6,
         hops: int = 10,
         transform: BaseTransform | None = None,
+        limit_num_batches: int = 10_000,
     ):
         """
         Dataloader-like class for generating patches from a pointcloud dataset
         using `torch_geometric.loader.NeighborLoader`.
-        Will generate a patch for each point in the pointcloud dataset in a random order
-        so can be used with `itertools.islice` to limit the number of batches.
 
         Args:
             dataset (Dataset): Dataset containing pointclouds.
@@ -24,8 +24,10 @@ class PatchDataloader(NeighborLoader):
             K (int): Number of neighbors to consider for constructing the patch bfs, should be the same value as KNNGraph.
             hops (int): Number of bfs hops to take for constructing a patch, determines patch size.
             transform (BaseTransform | None): Transform to apply to the patches.
+            limit_num_batches (int): Maximum number of batches to generate.
         """
 
+        self.limit_num_batches = limit_num_batches
         batch = Batch.from_data_list(dataset)
         super().__init__(
             data=batch,
@@ -35,6 +37,20 @@ class PatchDataloader(NeighborLoader):
             shuffle=True,
             transform=transform,
         )
+
+    def __iter__(self):
+        return islice(super().__iter__(), self.limit_num_batches)
+
+    def __len__(self):
+        try:
+            length = super().__len__()
+        except Exception as e:
+            raise ValueError(f"Cannot determine length of dataloader. {e}")
+
+        if self.limit_num_batches is None:
+            return length
+
+        return min(length, self.limit_num_batches)
 
 
 if __name__ == "__main__":
@@ -51,7 +67,9 @@ if __name__ == "__main__":
         split="train",
         transform=Compose([KeepNormals(), KNNGraph(k=6)]),
     )
-    dataloader = PatchDataloader(dataset, batch_size=128, hops=10, transform=DistanceToEdgeWeight()) # can add ToSparseTensor conversion here 
+    dataloader = PatchDataloader(
+        dataset, batch_size=128, hops=10, transform=DistanceToEdgeWeight()
+    )  # can add ToSparseTensor conversion here
     it = iter(dataloader)
     batch = next(it)
     print(batch)
