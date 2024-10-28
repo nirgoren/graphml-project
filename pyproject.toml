@@ -3,43 +3,25 @@ name = "normal_diffusion"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = "~=3.11.10"
-dependencies = [
-    "torch~=2.4.1",
-    "torch-geometric~=2.6.1",
-    "open3d~=0.18.0",
-    "scikit-learn~=1.5.2",
-    "torch-scatter~=2.1.2",
-    "torch-sparse~=0.6.18",
-    "torch-cluster~=1.6.3",
-    "diffusers>=0.31.0",
-    "pyg-lib>=0.4.0",
-]
-emit-find-links = true
+requires-python = "~=3.11"
+# dependencies = [
+#     "torch~=2.4.1",
+#     "torch-geometric~=2.6.1",
+#     "open3d~=0.18.0",
+#     "scikit-learn~=1.5.2",
+#     "torch-scatter~=2.1.2",
+#     "torch-sparse~=0.6.18",
+#     "torch-cluster~=1.6.3",
+#     "diffusers>=0.31.0",
+#     "pyg-lib>=0.4.0",
+# ]
 
-[tool.uv.sources]
-torch = [
-  { index = "torch-cu118"},
-]
-pyg-lib = [
-    { url = "https://data.pyg.org/whl/torch-2.4.0%2Bcpu/pyg_lib-0.4.0%2Bpt24-cp311-cp311-macosx_14_0_universal2.whl", marker="sys_platform == 'darwin'" },
-    { url = "https://data.pyg.org/whl/torch-2.4.0%2Bcu118/pyg_lib-0.4.0%2Bpt24cu118-cp311-cp311-linux_x86_64.whl", marker="sys_platform != 'darwin'" },
-]
-
-[[tool.uv.index]]
-name = "torch-cu118"
-url = "https://download.pytorch.org/whl/cu118"
-
-[tool.uv.pip]
-find-links = ["https://data.pyg.org/whl/torch-2.4.0+cu118.html",
-              "https://data.pyg.org/whl/torch-2.4.0+cpu.html"]
-
-[tool.uv]
-dev-dependencies = [
-    "ipython",
-    "ruff",
-    "ipykernel"
-]
+# [tool.uv]
+# dev-dependencies = [
+#     "ipython",
+#     "ruff",
+#     "ipykernel"
+# ]
 
 
 [build-system]

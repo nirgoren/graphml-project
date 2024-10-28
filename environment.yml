@@ -1,0 +1,21 @@
+name: normal-prediction
+channels:
+  - pytorch
+  - pyg
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pytorch-cuda=12.1
+  - pytorch=2.4.0
+  - pyg
+  - pytorch-scatter
+  - pytorch-cluster
+  - pytorch-sparse
+  - scikit-learn
+  - open3d
+  - ipykernel
+  - diffusers
+  - tensorboard
+prefix: /home/nirg/anaconda3/envs/normal-prediction
