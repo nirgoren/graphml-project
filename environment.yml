@@ -14,8 +14,10 @@ dependencies:
   - pytorch-cluster
   - pytorch-sparse
   - scikit-learn
-  - open3d
   - ipykernel
   - diffusers
-  - tensorboard
+  - pip
+  - pip:
+    - open3d
+    - tensorboard
 prefix: /home/nirg/anaconda3/envs/normal-prediction
