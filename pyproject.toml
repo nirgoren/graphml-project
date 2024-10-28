@@ -16,12 +16,28 @@ dependencies = [
     "pyg-lib>=0.4.0",
 ]
 
+[tool.uv.sources]
+torch = [
+  { index = "torch-cu118"},
+]
+pyg-lib = [
+    { url = "https://data.pyg.org/whl/torch-2.4.0%2Bcpu/pyg_lib-0.4.0%2Bpt24-cp311-cp311-macosx_14_0_universal2.whl", marker="sys_platform == 'darwin'" },
+    { url = "https://data.pyg.org/whl/torch-2.4.0%2Bcu118/pyg_lib-0.4.0%2Bpt24cu118-cp311-cp311-linux_x86_64.whl", marker="sys_platform != 'darwin'" },
+]
+
+
+[[tool.uv.index]]
+name = "torch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+
+
 [tool.uv]
 dev-dependencies = [
     "ipython",
     "ruff",
     "ipykernel"
 ]
+
 
 [build-system]
 requires = ["hatchling"]
