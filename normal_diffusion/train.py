@@ -13,7 +13,17 @@ dataset = PCPNetDataset(
     split="train",
     transform=Compose([KeepNormals(), KNNGraph(k=6), DistanceToEdgeWeight(), ToSparseTensor()]),
 )
+
 # dataloader = PatchDataloader(dataset, batch_size=256, hops=15, transform=Compose([DistanceToEdgeWeight(), ToSparseTensor()]), limit_num_batches=1000) # can add ToSparseTensor conversion here 
+
+test_dataset = PCPNetDataset(
+    root=root,
+    category="NoNoise",
+    split="test",
+    transform=Compose([KeepNormals(), KNNGraph(k=6), DistanceToEdgeWeight(), ToSparseTensor()]),
+)
+
+test_dataloader = DataLoader(test_dataset, batch_size=19, shuffle=False)
 
 dataloader = DataLoader(dataset, batch_size=8, shuffle=False)
 print(len(dataloader))
@@ -37,5 +47,5 @@ log_dir = "logs/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
 writer = SummaryWriter(log_dir=log_dir)
 
-train_diffusion(model=model, dataloader=dataloader, scheduler=scheduler, n_epochs=1000, lr=1e-3, writer=writer, device=device)
+train_diffusion(model=model, train_dataloader=dataloader, test_dataloader=test_dataloader, scheduler=scheduler, n_epochs=1000, lr=1e-3, writer=writer, device=device)
 
