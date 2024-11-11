@@ -3,7 +3,8 @@
  - [ ] bigger dataset
  - [ ] larger backbone
  - [ ] position-invariant backbone
- - [ ] evaluation dataset
- - [ ] evaluation metrics
- - [ ] validation loss during training
+ - [v] evaluation dataset
+ - [v] evaluation metrics
+ - [v] validation loss during training
  - [ ] final report
+ - [ ] OT flow-matching instead of diffusion? (https://youtu.be/5ZSwYogAxYg?t=2271)
