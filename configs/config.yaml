@@ -14,3 +14,7 @@ inference:
 
 dataset:
   knn: 6
+
+model:
+  model_dim: 64
+  attention: True

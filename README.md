@@ -1,8 +1,8 @@
 # TODOs
 
  - [ ] bigger dataset
- - [ ] larger backbone
- - [ ] position-invariant backbone
+ - [v] larger backbone
+ - [v] position-invariant backbone
  - [v] evaluation dataset
  - [v] evaluation metrics
  - [v] validation loss during training

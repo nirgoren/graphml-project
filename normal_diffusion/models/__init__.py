@@ -1,3 +1,3 @@
-from .models import GCNModel
+from .models import PositionInvariantModel
 
-__all__ = ["GCNModel"]
+__all__ = ["PositionInvariantModel"]

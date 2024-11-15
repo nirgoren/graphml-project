@@ -1,30 +1,51 @@
-# implement gcn model that takes a graph with nodes that have positional features (xyz) and noised normal features (normalized xyz) and timestamp t and predicts the denoised xyz
+from functools import partial
 
 from torch import nn
-from torch_geometric.nn import GCNConv
-from normal_diffusion.models.utils import BackboneWrapper, Sequential, Activation, ConcatCondition
+
+from normal_diffusion.models.gnn_layers import (
+    PositionInvariantMessagePassingWithLocalAttention,
+    PositionInvariantMessagePassingWithMPL,
+)
+from normal_diffusion.models.utils import BackboneWrapper
 
 
-def GCNModel(hidden_dim: int = 64, time_embed_dim: int = 32, **gcnconv_kwargs):
+def PositionInvariantModel(
+    time_embed_dim: int = 32,
+    N: int = 64,
+    attention: bool = True,
+    attention_dim: int = 32,
+):
     """
     example usage:
         graph_data = pg.data.Data(x=noisy_normals, pos=positions, edge_index or adj_t)
-        model = GCNModel()
-        predicted_normals = model(graph_data, t)
+        model = PositionInvariantModel()
+        predicted_normals = model(graph_data, time)
     """
+    if attention:
+        gnn_layer = partial(
+            PositionInvariantMessagePassingWithLocalAttention,
+            attention_dim=attention_dim,
+        )
+    else:
+        gnn_layer = PositionInvariantMessagePassingWithMPL
+
     return BackboneWrapper(
-        Sequential(
-            ConcatCondition(
-                GCNConv(3+3+time_embed_dim, hidden_dim, **gcnconv_kwargs), condition_on=["pos", "t"]
-            ),
-            Activation(nn.ReLU()),
-            ConcatCondition(
-                GCNConv(hidden_dim + 3 + time_embed_dim, hidden_dim, **gcnconv_kwargs),
-                condition_on=["pos", "t"],
-            ),
-            Activation(nn.ReLU()),
-            ConcatCondition(
-                GCNConv(hidden_dim + 3 + time_embed_dim, 3, **gcnconv_kwargs), condition_on=["pos", "t"]
-            ),
-        ), time_embed_dim=time_embed_dim
+        gnn_layer(
+            layes_output_dims=(N // 2, N),
+            x_features=3,
+            time_embed_dim=time_embed_dim,
+        ),
+        nn.ReLU(),
+        gnn_layer(
+            layes_output_dims=(N, N // 2),
+            x_features=N,
+            time_embed_dim=time_embed_dim,
+        ),
+        nn.ReLU(),
+        gnn_layer(
+            layes_output_dims=(N // 2, 3),
+            x_features=N // 2,
+            time_embed_dim=time_embed_dim,
+        ),
+        time_embed_dim=time_embed_dim,
     )
