@@ -3,7 +3,7 @@ import datetime
 from pathlib import Path
 
 import torch
-from diffusers import DDPMScheduler
+from diffusers import DDIMScheduler
 from omegaconf import OmegaConf
 from torch.utils.tensorboard import SummaryWriter
 from torch_geometric.datasets import PCPNetDataset
@@ -56,7 +56,7 @@ def train_and_eval(config):
 
     model = PositionInvariantModel(N=config.model.model_dim, attention=config.model.attention).to(device)
 
-    scheduler = DDPMScheduler(
+    scheduler = DDIMScheduler(
         num_train_timesteps=config.scheduler.num_train_timesteps,
         beta_schedule=config.scheduler.beta_schedule,
         clip_sample=config.scheduler.clip_sample,
