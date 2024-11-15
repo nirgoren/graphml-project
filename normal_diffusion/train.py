@@ -1,51 +1,115 @@
+from pathlib import Path
 import torch
 from torch_geometric.datasets import PCPNetDataset
 from torch_geometric.transforms import ToSparseTensor, KNNGraph, Compose
+from tqdm import tqdm
 from normal_diffusion.data.transforms import DistanceToEdgeWeight, KeepNormals
 from torch_geometric.loader import DataLoader
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-# Choose the root directory where you want to save the dataset
-root = "data/PCPNetDataset"
-dataset = PCPNetDataset(
-    root=root,
-    category="NoNoise",
-    split="train",
-    transform=Compose([KeepNormals(), KNNGraph(k=6), DistanceToEdgeWeight(), ToSparseTensor()]),
-)
-
-# dataloader = PatchDataloader(dataset, batch_size=256, hops=15, transform=Compose([DistanceToEdgeWeight(), ToSparseTensor()]), limit_num_batches=1000) # can add ToSparseTensor conversion here 
-
-test_dataset = PCPNetDataset(
-    root=root,
-    category="NoNoise",
-    split="test",
-    transform=Compose([KeepNormals(), KNNGraph(k=6), DistanceToEdgeWeight(), ToSparseTensor()]),
-)
-
-test_dataloader = DataLoader(test_dataset, batch_size=19, shuffle=False)
-
-dataloader = DataLoader(dataset, batch_size=8, shuffle=False)
-print(len(dataloader))
-first_collection = next(iter(dataloader))
-first_collection = first_collection.to(device)
-print(first_collection.x.shape)
-print(first_collection.adj_t)
-print(first_collection)
-
+from omegaconf import OmegaConf
+import argparse
 from normal_diffusion.models import GCNModel
-model = GCNModel().to(device)
+from normal_diffusion.evaluation.evaluation import rms_angle_difference
 
 
-import datetime
-from diffusers import DDPMScheduler
-from normal_diffusion.training.training import train_diffusion
-from torch.utils.tensorboard import SummaryWriter
-scheduler = DDPMScheduler(num_train_timesteps=100, beta_schedule="squaredcos_cap_v2", clip_sample=False)
-# Setup TensorBoard
-log_dir = "logs/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
-writer = SummaryWriter(log_dir=log_dir)
+def train_and_eval(config):
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    # Choose the root directory where you want to save the dataset
+    root = "data/PCPNetDataset"
 
-train_diffusion(model=model, train_dataloader=dataloader, test_dataloader=test_dataloader, scheduler=scheduler, n_epochs=1000, lr=1e-3, writer=writer, device=device)
+    k = config.dataset.knn
 
+    dataset = PCPNetDataset(
+        root=root,
+        category="NoNoise",
+        split="train",
+        transform=Compose(
+            [KeepNormals(), KNNGraph(k=k), DistanceToEdgeWeight(), ToSparseTensor()]
+        ),
+    )
+
+    # dataloader = PatchDataloader(dataset, batch_size=256, hops=15, transform=Compose([DistanceToEdgeWeight(), ToSparseTensor()]), limit_num_batches=1000) # can add ToSparseTensor conversion here
+
+    test_dataset = PCPNetDataset(
+        root=root,
+        category="NoNoise",
+        split="test",
+        transform=Compose(
+            [KeepNormals(), KNNGraph(k=k), DistanceToEdgeWeight(), ToSparseTensor()]
+        ),
+    )
+
+    dataloader = DataLoader(dataset, batch_size=config.training.batch_size, shuffle=False)
+    test_dataloader = DataLoader(test_dataset, batch_size=config.inference.batch_size, shuffle=False)
+
+    print(len(dataloader))
+    first_collection = next(iter(dataloader))
+    first_collection = first_collection.to(device)
+    print(first_collection.x.shape)
+    print(first_collection.adj_t)
+    print(first_collection)
+
+    model = GCNModel().to(device)
+
+
+    import datetime
+    from diffusers import DDPMScheduler
+    from normal_diffusion.training.training import train_diffusion
+    from torch.utils.tensorboard import SummaryWriter
+
+    scheduler = DDPMScheduler(
+        num_train_timesteps=config.scheduler.num_train_timesteps,
+        beta_schedule=config.scheduler.beta_schedule,
+        clip_sample=config.scheduler.clip_sample,
+    )
+    scheduler.num_inference_steps = config.scheduler.num_inference_steps
+    now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    run_dir = Path("runs/" + now)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    # Setup TensorBoard
+    log_dir = Path("logs/" + now)
+
+    writer = SummaryWriter(log_dir=log_dir)
+
+    train_diffusion(
+        model=model,
+        train_dataloader=dataloader,
+        test_dataloader=test_dataloader,
+        scheduler=scheduler,
+        n_epochs=config.training.n_epochs,
+        lr=config.training.lr,
+        writer=writer,
+        device=device,
+    )
+
+    # save the model
+    torch.save(model.state_dict(), run_dir / "model.pth")
+
+    # Evaluate the model rms angle difference on the test set
+    model.eval()
+    with torch.inference_mode():
+        for i, graph_data in enumerate(test_dataloader):
+            graph_data = graph_data.to(device=device)
+            batch_size = graph_data.size(0)
+            noise = torch.randn_like(graph_data.x, device=device)
+            clean_normals = graph_data.x.cpu().numpy()
+            graph_data.x = noise
+            graph_data.x /= torch.norm(graph_data.x, dim=-1, keepdim=True)
+            for t in tqdm(range(scheduler.num_inference_steps), desc="Inference"):
+                graph_data.x = model(graph_data, torch.tensor([t] * batch_size, device=device).float())
+                graph_data.x = scheduler.add_noise(graph_data.x, graph_data.x, torch.tensor([t] * batch_size, device=device))
+                graph_data.x /= torch.norm(graph_data.x, dim=-1, keepdim=True)
+            estimated_normals = graph_data.x.cpu().numpy()
+            rms = rms_angle_difference(estimated_normals, clean_normals)
+            print(f"RMS angle difference on test batch {i}: {rms:.4f}")
+            writer.add_text(f"RMS angle difference on test batch {i}", f"{rms:.4f}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train the model with the given config file.")
+    parser.add_argument("--config_path", type=str, help="Path to the config file", default="configs/config.yaml")
+    args = parser.parse_args()
+
+    config_path = args.config_path
+    config = OmegaConf.load(config_path)
+    
+    train_and_eval(config)

@@ -9,11 +9,11 @@ import numpy as np
 
 def rms_angle_difference(pred_normals, gt_normals):
     # Ensure vectors are normalized
-    pred_normals = pred_normals / np.linalg.norm(pred_normals, axis=1, keepdims=True)
-    gt_normals = gt_normals / np.linalg.norm(gt_normals, axis=1, keepdims=True)
+    pred_normals = pred_normals / np.linalg.norm(pred_normals, axis=-1, keepdims=True)
+    gt_normals = gt_normals / np.linalg.norm(gt_normals, axis=-1, keepdims=True)
     
     # Compute dot product and clamp values to avoid numerical issues
-    dot_products = np.clip(np.sum(pred_normals * gt_normals, axis=1), -1.0, 1.0)
+    dot_products = np.clip(np.sum(pred_normals * gt_normals, axis=-1), -1.0, 1.0)
     
     # Calculate angle in radians
     angles = np.arccos(dot_products)

@@ -16,6 +16,7 @@ dependencies:
   - scikit-learn
   - ipykernel
   - diffusers
+  - omegaconf
   - pip
   - pip:
     - open3d
