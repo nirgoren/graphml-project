@@ -12,8 +12,7 @@ from torch_geometric.transforms import Compose, KNNGraph
 from tqdm import tqdm
 
 from normal_diffusion.data.transforms import KeepNormals
-from normal_diffusion.eval import evaluate
-from normal_diffusion.evaluation.evaluation import rms_angle_difference
+from normal_diffusion.eval import inference_eval
 from normal_diffusion.models import PositionInvariantModel
 from normal_diffusion.training.training import train_diffusion
 
@@ -78,7 +77,7 @@ def train_and_eval(config):
     # save the model
     torch.save(model.state_dict(), run_dir / "model.pth")
 
-    evaluate(config, model, test_dataloader, scheduler, writer, device)
+    inference_eval(config, model, test_dataloader, scheduler, writer, device)
 
 
 if __name__ == "__main__":
