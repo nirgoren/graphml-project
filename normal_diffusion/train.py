@@ -12,6 +12,7 @@ from torch_geometric.transforms import Compose, KNNGraph
 from tqdm import tqdm
 
 from normal_diffusion.data.transforms import KeepNormals
+from normal_diffusion.eval import evaluate
 from normal_diffusion.evaluation.evaluation import rms_angle_difference
 from normal_diffusion.models import PositionInvariantModel
 from normal_diffusion.training.training import train_diffusion
@@ -47,26 +48,19 @@ def train_and_eval(config):
         test_dataset, batch_size=config.inference.batch_size, shuffle=False
     )
 
-    print(len(dataloader))
-    first_collection = next(iter(dataloader))
-    first_collection = first_collection.to(device)
-    print(first_collection.x.shape)
-    print(first_collection.edge_index)
-    print(first_collection)
-
     model = PositionInvariantModel(N=config.model.model_dim, attention=config.model.attention).to(device)
 
     scheduler = DDIMScheduler(
         num_train_timesteps=config.scheduler.num_train_timesteps,
         beta_schedule=config.scheduler.beta_schedule,
         clip_sample=config.scheduler.clip_sample,
+        prediction_type="sample",
     )
-    scheduler.num_inference_steps = config.scheduler.num_inference_steps
     now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     run_dir = Path("runs/" + now)
     run_dir.mkdir(parents=True, exist_ok=True)
     # Setup TensorBoard
-    log_dir = Path("logs/" + now)
+    log_dir = run_dir / "logs"
 
     writer = SummaryWriter(log_dir=log_dir)
 
@@ -84,30 +78,7 @@ def train_and_eval(config):
     # save the model
     torch.save(model.state_dict(), run_dir / "model.pth")
 
-    # Evaluate the model rms angle difference on the test set
-    model.eval()
-    with torch.inference_mode():
-        for i, graph_data in enumerate(test_dataloader):
-            graph_data = graph_data.to(device=device)
-            batch_size = graph_data.size(0)
-            noise = torch.randn_like(graph_data.x, device=device)
-            clean_normals = graph_data.x.cpu().numpy()
-            graph_data.x = noise
-            graph_data.x /= torch.norm(graph_data.x, dim=-1, keepdim=True)
-            for t in tqdm(range(scheduler.num_inference_steps), desc="Inference"):
-                graph_data.x = model(
-                    graph_data, torch.tensor([t] * batch_size, device=device).float()
-                )
-                graph_data.x = scheduler.add_noise(
-                    graph_data.x,
-                    graph_data.x,
-                    torch.tensor([t] * batch_size, device=device),
-                )
-                graph_data.x /= torch.norm(graph_data.x, dim=-1, keepdim=True)
-            estimated_normals = graph_data.x.cpu().numpy()
-            rms = rms_angle_difference(estimated_normals, clean_normals)
-            print(f"RMS angle difference on test batch {i}: {rms:.4f}")
-            writer.add_text(f"RMS angle difference on test batch {i}", f"{rms:.4f}")
+    evaluate(config, model, test_dataloader, scheduler, writer, device)
 
 
 if __name__ == "__main__":

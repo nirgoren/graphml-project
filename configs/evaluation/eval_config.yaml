@@ -4,11 +4,6 @@ scheduler:
   beta_schedule: "squaredcos_cap_v2"
   clip_sample: False
 
-training:
-  n_epochs: 1000
-  lr: 1e-3
-  batch_size: 4
-
 inference:
   batch_size: 1
 
@@ -18,3 +13,4 @@ dataset:
 model:
   model_dim: 64
   attention: True
+  model_path: "runs/20241116-151345/model.pth"
