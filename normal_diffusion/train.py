@@ -72,6 +72,7 @@ def train_and_eval(config):
         lr=config.training.lr,
         writer=writer,
         device=device,
+        min_training_timestep=config.training.min_training_timestep,
     )
 
     # save the model

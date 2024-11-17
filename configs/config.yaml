@@ -6,6 +6,7 @@ scheduler:
 
 training:
   n_epochs: 1000
+  min_training_timestep: 0
   lr: 1e-3
   batch_size: 4
 
