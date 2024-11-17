@@ -70,3 +70,5 @@ runs/
 */runs/
 eval/
 */eval/
+
+run.slurm

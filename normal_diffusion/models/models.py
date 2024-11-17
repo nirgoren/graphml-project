@@ -6,11 +6,12 @@ from normal_diffusion.models.gnn_layers import (
     PositionInvariantMessagePassingWithLocalAttention,
     PositionInvariantMessagePassingWithMPL,
 )
-from normal_diffusion.models.utils import BackboneWrapper
+from normal_diffusion.models.utils import BackboneWrapper, DirectionalEmbedding
 
 
 def PositionInvariantModel(
     time_embed_dim: int = 32,
+    direction_embed_dim=12,
     N: int = 64,
     attention: bool = True,
     attention_dim: int = 32,
@@ -21,6 +22,8 @@ def PositionInvariantModel(
         model = PositionInvariantModel()
         predicted_normals = model(graph_data, time)
     """
+    direction_embed = DirectionalEmbedding(direction_embed_dim)
+
     if attention:
         gnn_layer = partial(
             PositionInvariantMessagePassingWithLocalAttention,
@@ -34,18 +37,21 @@ def PositionInvariantModel(
             layes_output_dims=(N // 2, N),
             x_features=3,
             time_embed_dim=time_embed_dim,
+            direction_embedding=direction_embed
         ),
         nn.ReLU(),
         gnn_layer(
             layes_output_dims=(N, N // 2),
             x_features=N,
             time_embed_dim=time_embed_dim,
+            direction_embedding=direction_embed
         ),
         nn.ReLU(),
         gnn_layer(
             layes_output_dims=(N // 2, 3),
             x_features=N // 2,
             time_embed_dim=time_embed_dim,
+            direction_embedding=direction_embed
         ),
         time_embed_dim=time_embed_dim,
     )

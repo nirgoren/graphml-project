@@ -4,6 +4,18 @@ from torch import nn
 from torch_geometric.data import Data as GraphData
 import inspect
 
+class DirectionalEmbedding(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.dim = dim
+        self.conv = nn.Conv1d(1, dim, 1)
+        self.act = nn.ReLU()
+
+    def forward(self, direction):
+        B, _ = direction.shape
+        conv_output = self.conv(direction.unsqueeze(1)).view(B, -1)
+        return self.act(conv_output)
+
 class SinusoidalTimeEmbedding(nn.Module):
     def __init__(self, dim):
         super().__init__()
