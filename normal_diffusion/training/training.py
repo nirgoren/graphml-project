@@ -16,6 +16,7 @@ def evaluate_diffusion(
     n_epochs: int,
     writer: SummaryWriter | None = None,
     device: torch.device | str = "cpu",
+    min_training_timestep: int = 0,
 ):
     with torch.inference_mode():
         total_loss = 0
@@ -25,7 +26,7 @@ def evaluate_diffusion(
             noise = torch.randn_like(batch_data.x)
             clean_normals = batch_data.x
             timesteps = torch.randint(
-                0, scheduler.config.num_train_timesteps, (batch_size,)
+                min_training_timestep, scheduler.config.num_train_timesteps, (batch_size,)
             ).to(device=device)
             timesteps = timesteps[batch_data.batch]
             batch_data.x = scheduler.add_noise(batch_data.x, noise, timesteps)
@@ -51,6 +52,7 @@ def train_diffusion(
     lr: float = 1e-3,
     writer: SummaryWriter | None = None,
     device: torch.device | str = "cpu",
+    min_training_timestep: int = 0,
 ):
     if writer is not None:
         writer.add_text("model", str(model))
@@ -59,16 +61,18 @@ def train_diffusion(
         writer.add_text("lr", str(lr))
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
+    noise = torch.randn_like(next(iter(train_dataloader)).x).to(device=device)
+
     for epoch in range(n_epochs):
         total_loss = 0
         for i, batch_data in enumerate(train_dataloader):
             batch_data = batch_data.to(device=device)
             optimizer.zero_grad()
             batch_size = len(batch_data)
-            noise = torch.randn_like(batch_data.x)
+            # noise = torch.randn_like(batch_data.x)
             clean_normals = batch_data.x
             timesteps = torch.randint(
-                0, scheduler.config.num_train_timesteps, (batch_size,)
+                min_training_timestep, scheduler.config.num_train_timesteps, (batch_size,)
             ).to(device=device)
             timesteps = timesteps[batch_data.batch]
             batch_data.x = scheduler.add_noise(batch_data.x, noise, timesteps)
@@ -90,5 +94,5 @@ def train_diffusion(
         print(f"Epoch {epoch+1}/{n_epochs}, Train Loss: {total_loss / (i+1):.4f}")
         if (epoch + 1) % 10 == 0:
             evaluate_diffusion(
-                model, test_dataloader, scheduler, epoch, n_epochs, writer, device
+                model, test_dataloader, scheduler, epoch, n_epochs, writer, device, min_training_timestep
             )
