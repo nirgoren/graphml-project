@@ -61,20 +61,19 @@ def train_diffusion(
         writer.add_text("lr", str(lr))
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
-    noise = torch.randn_like(next(iter(train_dataloader)).x).to(device=device)
-
     for epoch in range(n_epochs):
         total_loss = 0
         for i, batch_data in enumerate(train_dataloader):
             batch_data = batch_data.to(device=device)
             optimizer.zero_grad()
             batch_size = len(batch_data)
-            # noise = torch.randn_like(batch_data.x)
+            noise = torch.randn_like(batch_data.x)
             clean_normals = batch_data.x
             timesteps = torch.randint(
                 min_training_timestep, scheduler.config.num_train_timesteps, (batch_size,)
             ).to(device=device)
             timesteps = timesteps[batch_data.batch]
+            print(batch_data.x.shape, noise.shape, timesteps.shape)
             batch_data.x = scheduler.add_noise(batch_data.x, noise, timesteps)
             batch_data.x /= torch.norm(batch_data.x, dim=-1, keepdim=True)
 
