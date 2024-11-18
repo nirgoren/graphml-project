@@ -73,7 +73,6 @@ def train_diffusion(
                 min_training_timestep, scheduler.config.num_train_timesteps, (batch_size,)
             ).to(device=device)
             timesteps = timesteps[batch_data.batch]
-            print(batch_data.x.shape, noise.shape, timesteps.shape)
             batch_data.x = scheduler.add_noise(batch_data.x, noise, timesteps)
             batch_data.x /= torch.norm(batch_data.x, dim=-1, keepdim=True)
 
