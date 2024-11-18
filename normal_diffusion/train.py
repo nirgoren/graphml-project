@@ -11,7 +11,7 @@ from torch_geometric.loader import DataLoader
 from torch_geometric.transforms import Compose, KNNGraph
 from tqdm import tqdm
 
-from normal_diffusion.data.transforms import KeepNormals
+from normal_diffusion.data.dataloader import get_dataloader
 from normal_diffusion.eval import inference_eval
 from normal_diffusion.models import PositionInvariantModel
 from normal_diffusion.training.training import train_diffusion
@@ -20,32 +20,11 @@ from normal_diffusion.training.training import train_diffusion
 def train_and_eval(config):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     # Choose the root directory where you want to save the dataset
-    root = "data/PCPNetDataset"
 
     k = config.dataset.knn
 
-    dataset = PCPNetDataset(
-        root=root,
-        category="NoNoise",
-        split="train",
-        transform=Compose([KeepNormals(), KNNGraph(k=k)]),
-    )
-
-    # dataloader = PatchDataloader(dataset, batch_size=256, hops=15, transform=Compose([DistanceToEdgeWeight(), ToSparseTensor()]), limit_num_batches=1000) # can add ToSparseTensor conversion here
-
-    test_dataset = PCPNetDataset(
-        root=root,
-        category="NoNoise",
-        split="test",
-        transform=Compose([KeepNormals(), KNNGraph(k=k)]),
-    )
-
-    dataloader = DataLoader(
-        dataset, batch_size=config.training.batch_size, shuffle=False
-    )
-    test_dataloader = DataLoader(
-        test_dataset, batch_size=config.inference.batch_size, shuffle=False
-    )
+    dataloader = get_dataloader(batch_size=config.training.batch_size, knn=k, split="train")
+    test_dataloader = get_dataloader(batch_size=config.inference.batch_size, knn=k, split="test", shuffle=False)
 
     model = PositionInvariantModel(N=config.model.model_dim, attention=config.model.attention).to(device)
 

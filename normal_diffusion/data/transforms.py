@@ -33,11 +33,16 @@ class DistanceToEdgeWeight(BaseTransform):
 class KeepNormals(BaseTransform):
     r"""Keeps the normal vectors in the data object.
     """
+    def __init__(
+        self,
+        range: slice = slice(3),
+    ):
+        self.range = range
 
     def forward(self, data: Data) -> Data:
         assert data.x is not None
-        data.x = data.x[:, :3].clone()
+        data.x = data.x[:, self.range].clone()
         return data
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}()"
+        return f"{self.__class__.__name__}(range={self.slice})"

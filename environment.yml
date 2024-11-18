@@ -21,4 +21,5 @@ dependencies:
   - pip:
     - open3d
     - tensorboard
+    - pyg-lib -f https://data.pyg.org/whl/torch-2.4.0+cu121.html
 prefix: /home/nirg/anaconda3/envs/normal-prediction
