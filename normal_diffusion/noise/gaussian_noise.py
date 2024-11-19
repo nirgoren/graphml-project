@@ -11,7 +11,7 @@ def add_gaussian_noise(mu, sigma):
 
 def gaussian_noise_loss(data, predicted_data):
     # Loss based on cosine similarity
-    return -torch.mean(torch.sum(data * predicted_data, axis=-1))
+    return -torch.mean(torch.abs(torch.sum(data * predicted_data, axis=-1)))
 
 
 if __name__ == "__main__":
