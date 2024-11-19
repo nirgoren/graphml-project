@@ -1,8 +1,10 @@
+import torch
 from torch_geometric.data import Batch, Dataset
 from torch_geometric.loader import NeighborLoader
 from torch_geometric.transforms import BaseTransform
 from itertools import islice
 
+DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 class PatchDataloader(NeighborLoader):
     def __init__(
@@ -13,6 +15,7 @@ class PatchDataloader(NeighborLoader):
         hops: int = 10,
         transform: BaseTransform | None = None,
         limit_num_batches: int = 10_000,
+        device: torch.device = DEVICE
     ):
         """
         Dataloader-like class for generating patches from a pointcloud dataset
@@ -28,7 +31,7 @@ class PatchDataloader(NeighborLoader):
         """
 
         self.limit_num_batches = limit_num_batches
-        batch = Batch.from_data_list(dataset)
+        batch = Batch.from_data_list(dataset).to(device)
         super().__init__(
             data=batch,
             num_neighbors=[K] * hops,
@@ -57,10 +60,10 @@ if __name__ == "__main__":
     from torch_geometric.datasets import PCPNetDataset
     from torch_geometric.transforms import Compose, KNNGraph
 
-    from normal_diffusion.data.transforms import DistanceToEdgeWeight, KeepNormals
+    from normal_diffusion.data.transforms import KeepNormals
     from normal_diffusion.utils.visualization import visualize_pcd
 
-    root = "../data/PCPNetDataset"
+    root = "data/PCPNetDataset"
     dataset = PCPNetDataset(
         root=root,
         category="NoNoise",
@@ -68,8 +71,8 @@ if __name__ == "__main__":
         transform=Compose([KeepNormals(), KNNGraph(k=6)]),
     )
     dataloader = PatchDataloader(
-        dataset, batch_size=128, hops=10, transform=DistanceToEdgeWeight()
-    )  # can add ToSparseTensor conversion here
+        dataset, batch_size=1, hops=25, limit_num_batches=10
+    )
     it = iter(dataloader)
     batch = next(it)
     print(batch)
