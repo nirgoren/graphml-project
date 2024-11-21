@@ -37,6 +37,8 @@ def train_and_eval(config):
     now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     run_dir = Path("runs/" + now)
     run_dir.mkdir(parents=True, exist_ok=True)
+    # Save the config file
+    OmegaConf.save(config, run_dir / "config.yaml")
     # Setup TensorBoard
     log_dir = run_dir / "logs"
 

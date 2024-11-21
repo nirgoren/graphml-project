@@ -13,4 +13,4 @@ dataset:
 model:
   model_dim: 64
   attention: True
-  model_path: "runs/20241116-151345/model.pth"
+  model_path: "runs/20241118-211826/model.pth"
