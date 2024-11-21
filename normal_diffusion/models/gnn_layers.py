@@ -62,9 +62,9 @@ class PositionInvariantMessagePassingWithMPL(PositionInvariantMessagePassing):
         self.message_transorm = nn.Sequential(*layers)
 
     def message(
-        self, x_i: Tensor, x_j: Tensor, pos_i: Tensor, pos_j: Tensor, time: Tensor
+        self, x_i: Tensor, x_j: Tensor, pos_i: Tensor, pos_j: Tensor, time_j: Tensor
     ) -> Tensor:
-        return self.message_transorm(super().message(x_i, x_j, pos_i, pos_j, time))
+        return self.message_transorm(super().message(x_i, x_j, pos_i, pos_j, time_j))
 
 
 class PositionInvariantMessagePassingWithLocalAttention(
