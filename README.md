@@ -1,6 +1,6 @@
 # TODOs
 
- - [ ] bigger dataset
+ - [v] bigger dataset
  - [v] larger backbone
  - [v] position-invariant backbone
  - [v] evaluation dataset

@@ -6,11 +6,6 @@ import torch
 from diffusers import DDIMScheduler
 from omegaconf import OmegaConf
 from torch.utils.tensorboard import SummaryWriter
-from torch_geometric.datasets import PCPNetDataset
-from torch_geometric.loader import DataLoader
-from torch_geometric.transforms import Compose, KNNGraph
-from tqdm import tqdm
-
 from normal_diffusion.data.dataloader import get_dataloader
 from normal_diffusion.eval import inference_eval
 from normal_diffusion.models import PositionInvariantModel
@@ -37,6 +32,8 @@ def train_and_eval(config):
     now = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     run_dir = Path("runs/" + now)
     run_dir.mkdir(parents=True, exist_ok=True)
+    OmegaConf.save(config, run_dir / "config.yaml")
+    
     # Setup TensorBoard
     log_dir = run_dir / "logs"
 
