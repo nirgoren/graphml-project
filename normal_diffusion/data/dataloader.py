@@ -27,6 +27,8 @@ def get_dataloader(batch_size=1, knn=6, split="train", shuffle=True):
         pcpnet_dataset, batch_size=batch_size, shuffle=shuffle
     )
 
+    return pcpnet_dataloader
+
     # if download fails, download manually from https://www.kaggle.com/datasets/mitkir/shapenet/download?datasetVersionNumber=1
     # and unzip into data/ShapeNet/raw
     shapenet_dataset = ShapeNet(
