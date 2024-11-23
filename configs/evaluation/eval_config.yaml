@@ -9,7 +9,7 @@ inference:
 
 dataset:
   knn: 6
-  category: "LowNoise" # NoNoise, LowNoise, MedNoise, HighNoise
+  category: "NoNoise" # NoNoise, LowNoise, MedNoise, HighNoise
 
 model:
   model_dim: 64
