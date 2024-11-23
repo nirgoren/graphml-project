@@ -6,8 +6,7 @@ from normal_diffusion.data.transforms import DistanceToEdgeWeight, KeepNormals
 from torch_geometric.loader import DataLoader
 import numpy as np
 
-
-def rms_angle_difference(pred_normals, gt_normals):
+def squared_angle_difference_sum(pred_normals, gt_normals):
     # Ensure vectors are normalized
     pred_normals = pred_normals / np.linalg.norm(pred_normals, axis=-1, keepdims=True)
     gt_normals = gt_normals / np.linalg.norm(gt_normals, axis=-1, keepdims=True)
@@ -20,9 +19,13 @@ def rms_angle_difference(pred_normals, gt_normals):
     
     # Convert angles to degrees if needed
     angles_degrees = np.degrees(angles)
+
+    return np.sum(angles_degrees ** 2)
+
+def rms_angle_difference(pred_normals, gt_normals):
     
-    # Calculate RMS angle difference
-    rms = np.sqrt(np.mean(angles_degrees ** 2))
+    squared_sum = squared_angle_difference_sum(pred_normals, gt_normals)
+    rms = np.sqrt(squared_sum / pred_normals.shape[0])
     
     return rms
 

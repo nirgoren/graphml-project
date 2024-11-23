@@ -15,7 +15,8 @@ inference:
 
 dataset:
   knn: 6
+  category: "NoNoise" # NoNoise, LowNoise, MedNoise, HighNoise
 
 model:
   model_dim: 64
-  attention: False
+  attention: True

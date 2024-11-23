@@ -18,8 +18,8 @@ def train_and_eval(config):
 
     k = config.dataset.knn
 
-    dataloader = get_dataloader(batch_size=config.training.batch_size, knn=k, split="train")
-    test_dataloader = get_dataloader(batch_size=config.inference.batch_size, knn=k, split="test", shuffle=False)
+    dataloader = get_dataloader(batch_size=config.training.batch_size, knn=k, split="train", category="NoNoise")
+    test_dataloader = get_dataloader(batch_size=config.inference.batch_size, knn=k, split="test", shuffle=False, category=config.dataset.category)
 
     model = PositionInvariantModel(N=config.model.model_dim, attention=config.model.attention).to(device)
 

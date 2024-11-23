@@ -9,7 +9,7 @@ def root(typ: type):
     return "data/{name}".format(name=typ.__name__)
 
 
-def get_dataloader(batch_size=1, knn=6, split="train", shuffle=True):
+def get_dataloader(batch_size=1, knn=6, split="train", shuffle=True, category="NoNoise"):
     """
     Get a dataloader for training.
     The dataloader is an iterable created from chaining multiple dataloaders.
@@ -17,7 +17,7 @@ def get_dataloader(batch_size=1, knn=6, split="train", shuffle=True):
     """
     pcpnet_dataset = PCPNetDataset(
         root=root(PCPNetDataset),
-        category="NoNoise",
+        category=category,
         split=split,
         transform=Compose(
             [KeepNormals(), KNNGraph(k=knn)]

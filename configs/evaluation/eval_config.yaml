@@ -9,8 +9,9 @@ inference:
 
 dataset:
   knn: 6
+  category: "LowNoise" # NoNoise, LowNoise, MedNoise, HighNoise
 
 model:
   model_dim: 64
   attention: True
-  model_path: "runs/20241118-211826/model.pth"
+  model_path: runs/20241121-090525/model.pth

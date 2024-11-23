@@ -2,6 +2,7 @@ import argparse
 import datetime
 from pathlib import Path
 
+import numpy as np
 import torch
 from diffusers import DDIMScheduler
 from omegaconf import OmegaConf
@@ -12,7 +13,7 @@ from torch_geometric.transforms import Compose, KNNGraph
 from tqdm import tqdm
 
 from normal_diffusion.data.transforms import KeepNormals
-from normal_diffusion.evaluation.evaluation import rms_angle_difference
+from normal_diffusion.evaluation.evaluation import rms_angle_difference, squared_angle_difference_sum
 from normal_diffusion.models import PositionInvariantModel
 
 
@@ -25,7 +26,7 @@ def evaluate(config):
 
     test_dataset = PCPNetDataset(
         root=root,
-        category="NoNoise",
+        category=config.dataset.category,
         split="test",
         transform=Compose([KeepNormals(), KNNGraph(k=k)]),
     )
@@ -58,10 +59,13 @@ def inference_eval(config, model, test_dataloader, scheduler, writer, device):
     # Evaluate the model rms angle difference on the test set
     scheduler.set_timesteps(config.scheduler.num_inference_steps)
     model.eval()
+    nodes_total = 0
+    squared_angle_diff_sum = 0
     with torch.inference_mode():
-        for i, batch_data in enumerate(test_dataloader):
+        for i, batch_data in tqdm(enumerate(test_dataloader), desc="Batch"):
             batch_data = batch_data.to(device=device)
             batch_node_count = batch_data.size(0)
+            nodes_total += batch_node_count
             noise = torch.randn_like(batch_data.x, device=device)
             clean_normals = batch_data.x.cpu().numpy()
             batch_data.x = noise
@@ -79,9 +83,10 @@ def inference_eval(config, model, test_dataloader, scheduler, writer, device):
                 ).prev_sample
                 batch_data.x /= torch.norm(batch_data.x, dim=-1, keepdim=True)
             estimated_normals = batch_data.x.cpu().numpy()
-            rms = rms_angle_difference(estimated_normals, clean_normals)
-            print(f"RMS angle difference on test batch {i}: {rms:.4f}")
-            writer.add_text(f"RMS angle difference on test batch {i}", f"{rms:.4f}")
+            squared_angle_diff_sum += squared_angle_difference_sum(estimated_normals, clean_normals)
+    rms_angle_diff = np.sqrt(squared_angle_diff_sum / nodes_total)
+    writer.add_scalar("RMS angle difference", rms_angle_diff)
+    print(f"RMS angle difference: {rms_angle_diff}")
 
 
 if __name__ == "__main__":

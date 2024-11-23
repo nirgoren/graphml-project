@@ -17,6 +17,7 @@ def evaluate_diffusion(
     writer: SummaryWriter | None = None,
     device: torch.device | str = "cpu",
     min_training_timestep: int = 0,
+    flip_normals: bool = False,
 ):
     with torch.inference_mode():
         total_loss = 0
@@ -30,6 +31,10 @@ def evaluate_diffusion(
             ).to(device=device)
             timesteps = timesteps[batch_data.batch]
             batch_data.x = scheduler.add_noise(batch_data.x, noise, timesteps)
+            if flip_normals:
+                # randomly flip normals
+                random_signs = torch.randint(0, 2, (batch_data.x.shape[0],), device=device) * 2 - 1  # Random 0 or 1 mapped to -1 or 1
+                batch_data.x = batch_data.x * random_signs.view(-1, 1)
             batch_data.x /= torch.norm(batch_data.x, dim=-1, keepdim=True)
 
             estimated_normals = model(batch_data, timesteps.float())
@@ -53,6 +58,7 @@ def train_diffusion(
     writer: SummaryWriter | None = None,
     device: torch.device | str = "cpu",
     min_training_timestep: int = 0,
+    flip_normals: bool = False,
 ):
     if writer is not None:
         writer.add_text("model", str(model))
@@ -74,6 +80,10 @@ def train_diffusion(
             ).to(device=device)
             timesteps = timesteps[batch_data.batch]
             batch_data.x = scheduler.add_noise(batch_data.x, noise, timesteps)
+            if flip_normals:
+                # randomly flip normals
+                random_signs = torch.randint(0, 2, (batch_data.x.shape[0],), device=device) * 2 - 1  # Random 0 or 1 mapped to -1 or 1
+                batch_data.x = batch_data.x * random_signs.view(-1, 1)
             batch_data.x /= torch.norm(batch_data.x, dim=-1, keepdim=True)
 
             estimated_normals = model(batch_data, timesteps.float())
@@ -92,5 +102,5 @@ def train_diffusion(
         print(f"Epoch {epoch+1}/{n_epochs}, Train Loss: {total_loss / (i+1):.4f}")
         if (epoch + 1) % 10 == 0:
             evaluate_diffusion(
-                model, test_dataloader, scheduler, epoch, n_epochs, writer, device, min_training_timestep
+                model, test_dataloader, scheduler, epoch, n_epochs, writer, device, min_training_timestep, flip_normals
             )

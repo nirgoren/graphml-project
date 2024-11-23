@@ -42,15 +42,46 @@ Being in giving intuition to the solution you are proposing, then formally detai
  Describe in details the experiments you conducted, the datasets you use, the evaluation metric and models/other methods you compared to, how you generated your splits / where did you take the splits from, etc. Make sure to explain every experiment you show, what is the goal of this experiment? If needed, include running time /memory report, etc.
 This is also the place to include details on your implementation, e.g. which libraries did you use, and a link to public github with the code (can be anonymous github) - 1-2 pages
 
+\paragraph{Implementation}
+We implemented our model in PyTorch and used the PyTorch Geometric library for graph operations. Our model consists of a graph neural network with 3 layers with varying input and output dimesions. We used the ReLU activation function after each layer, a time-embedding dimension of 32 and a relative-position-embedding dimension of 12, and used K=6 for kNN. We experimented with both attentional aggregation and mean aggregation, but found that the attentional aggregation performed better. Our code is available at \url{https://github.com/nirgoren/graphml-project}.
+
 \paragraph{Datasets}
+We trained our model on the synthetic PCPNet dataset \cite{guerrero2018pcpnet} and evaluated it on the PCPNet test set and the SceneNN dataset \cite{scenenn-3dv16}. The PCPNet dataset contains 27 point clouds (8 for training and 19 for testing) sampled uniformly from meshes with 100,000 points. We also tried to incorporate the ShapeNet dataset \cite{chang2015shapenet} into our training data, but the performance seemed to degrade, so we did not include it in our final model. This might be due to a domain gap between the two datasets which may result a performance decline for models with stronger learning capabilities \cite{arXiv:2406.09681}.
+
+We trained our model using the Adam optimzier with a batch size of 4 and learning rate of 0.001, for 6000 epochs in total, with 1000 timesteps. Training took approximately 5 hours on a single NVIDIA RTX 3090 GPU.
+
+We conducted experiments to evaluate the performance of our model on the test set of the PCPNet dataset.
 
 \paragraph{Evaluated Models}
-
+We compared our model to existing deep-learning-based methods for normal estimation on point clouds, including PCPNet \cite{guerrero2018pcpnet}, Nesti-Net, IterNet, DeepFit, AdaFit, and GraphFit, as well as two geometric methods, PCA and n-jets.
 \paragraph{Evaluation Protocol}
+When evaluating our method, we took the test set samples and replaced the ground truth normals with normals uniformly sampled from the unit sphere. We then ran the test set through 50 denoising steps with a DDIM sampler to obtain the final predicted normals.
+For evaluation we used the root-mean-squared-error (RMSE) of the angles (degrees) between the predicted normals and the ground truth normals.
+\begin{equation}
+    \text{RMSE} = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(\arccos(\hat{n}_i \cdot n_i))^2}
+\end{equation}
+where $\hat{n}_i$ is the predicted normal (after being reoriented towards the ground truth normal) and $n_i$ is the ground truth normal for point $i$.
 
+We also evaluated the robustness of our model to noise by evaluating it on a noisy version of the PCPNet dataset (where the point positions are perturbed by a small amount of noise but the ground truth normals remain the same).
  \subsection{Results}
  Discuss in details the results of your experiments. Did you succeed? what is the improvement \% ? provide cumulative analysis of the results. Discuss potential error, or suggest explanations to why the method failed if it failed - 
  1 page
+
+ \begin{table}[ht]
+  \centering
+  \caption{Comparison of normal estimation methods under varying levels of noise augmentation.}
+  \label{tab:noise_comparison}
+  \begin{tabular}{lccccccccc}
+  \hline
+  \textbf{Aug.} & \textbf{Ours} & \textbf{GraphFit} & \textbf{AdaFit} & \textbf{DeepFit} & \textbf{IterNet} & \textbf{Nesti-Net} & \textbf{PCPNet} & \textbf{Jet} & \textbf{PCA} \\ \hline
+  w/o Noise & 0 & 4.45  & 5.19  & 6.51  & 6.72  & 6.99  & 9.62  & 12.25 & 12.29 \\
+  $\sigma = 0.125\%$ & 0 & 8.74  & 9.05  & 9.21  & 9.95  & 10.11 & 11.37 & 12.84 & 12.87 \\
+  $\sigma = 0.6\%$  & 0 & 16.05 & 16.44 & 16.72 & 17.18 & 17.63 & 18.87 & 18.33 & 18.38 \\
+  $\sigma = 1.2\%$  & 0 & 21.64 & 21.94 & 23.12 & 21.96 & 22.28 & 23.28 & 27.68 & 27.50 \\ \hline
+  \end{tabular}
+  \end{table}
+
+Ultimately, on the clean test set, our model managed to perform better than the SOTA geometric methods, but failed to reach the performance of competing deep learning methods. Our method also does not generalize well to the noisy test sets. There may be several explanations as to why this is the case. Some of those methods, such as GraphFit, don't directly output the predicted normals but rather a set of coefficients that are used to geometrically fit a normal to the point cloud at a query point. This approach may be more stable than directly predicting the normals, however it does not fit our proposed regime of denoising a noisy feature space using graph neural networks as the denoising backbone.
 
 
 \section{Future work}
