@@ -15,6 +15,7 @@ def PositionInvariantModel(
     N: int = 64,
     attention: bool = True,
     attention_dim: int = 32,
+    aggregation: str = "mean",
 ):
     """
     example usage:
@@ -30,28 +31,30 @@ def PositionInvariantModel(
             attention_dim=attention_dim,
         )
     else:
-        gnn_layer = PositionInvariantMessagePassingWithMPL
+        gnn_layer = partial(
+            PositionInvariantMessagePassingWithMPL, aggr=aggregation
+        )
 
     return BackboneWrapper(
         gnn_layer(
             layes_output_dims=(N // 2, N),
             x_features=3,
             time_embed_dim=time_embed_dim,
-            direction_embedding=direction_embed
+            direction_embedding=direction_embed,
         ),
         nn.ReLU(),
         gnn_layer(
             layes_output_dims=(N, N // 2),
             x_features=N,
             time_embed_dim=time_embed_dim,
-            direction_embedding=direction_embed
+            direction_embedding=direction_embed,
         ),
         nn.ReLU(),
         gnn_layer(
             layes_output_dims=(N // 2, 3),
             x_features=N // 2,
             time_embed_dim=time_embed_dim,
-            direction_embedding=direction_embed
+            direction_embedding=direction_embed,
         ),
         time_embed_dim=time_embed_dim,
     )

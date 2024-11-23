@@ -22,3 +22,4 @@ dataset:
 model:
   model_dim: 64
   attention: True
+  aggregation: "mean"

@@ -18,8 +18,16 @@ def train_and_eval(config):
 
     k = config.dataset.knn
 
-    dataloader = get_dataloader(batch_size=config.training.batch_size, knn=k, split="train", category="NoNoise")
-    test_dataloader = get_dataloader(batch_size=config.inference.batch_size, knn=k, split="test", shuffle=False, category=config.dataset.category)
+    dataloader = get_dataloader(
+        batch_size=config.training.batch_size, knn=k, split="train", category="NoNoise"
+    )
+    test_dataloader = get_dataloader(
+        batch_size=config.inference.batch_size,
+        knn=k,
+        split="test",
+        shuffle=False,
+        category=config.dataset.category,
+    )
     dataloader = get_dataloader(
         batch_size=config.training.batch_size,
         knn=k,
@@ -37,7 +45,9 @@ def train_and_eval(config):
     )
 
     model = PositionInvariantModel(
-        N=config.model.model_dim, attention=config.model.attention
+        N=config.model.model_dim,
+        attention=config.model.attention,
+        aggregation=config.model.aggregation,
     ).to(device)
 
     scheduler = DDIMScheduler(

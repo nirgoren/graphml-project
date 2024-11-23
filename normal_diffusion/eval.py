@@ -13,7 +13,11 @@ from torch_geometric.transforms import Compose, KNNGraph
 from tqdm import tqdm
 
 from normal_diffusion.data.transforms import KeepNormals
-from normal_diffusion.evaluation.evaluation import count_angle_difference_less_than, rms_angle_difference, squared_angle_difference_sum
+from normal_diffusion.evaluation.evaluation import (
+    count_angle_difference_less_than,
+    rms_angle_difference,
+    squared_angle_difference_sum,
+)
 from normal_diffusion.models import PositionInvariantModel
 
 
@@ -36,7 +40,9 @@ def evaluate(config):
     )
 
     model = PositionInvariantModel(
-        N=config.model.model_dim, attention=config.model.attention
+        N=config.model.model_dim,
+        attention=config.model.attention,
+        aggregation=config.model.aggregation,
     ).to(device)
     model.load_state_dict(torch.load(config.model.model_path))
 
@@ -85,11 +91,17 @@ def inference_eval(config, model, test_dataloader, scheduler, writer, device):
                 ).prev_sample
                 batch_data.x /= torch.norm(batch_data.x, dim=-1, keepdim=True)
             estimated_normals = batch_data.x.cpu().numpy()
-            squared_angle_diff_sum += squared_angle_difference_sum(estimated_normals, clean_normals)
-            less_than_alpha += count_angle_difference_less_than(estimated_normals, clean_normals, alpha)
+            squared_angle_diff_sum += squared_angle_difference_sum(
+                estimated_normals, clean_normals
+            )
+            less_than_alpha += count_angle_difference_less_than(
+                estimated_normals, clean_normals, alpha
+            )
     rms_angle_diff = np.sqrt(squared_angle_diff_sum / nodes_total)
     less_than_alpha = less_than_alpha / nodes_total
-    print(f"Percentage of angle differences less than {alpha} degrees: {less_than_alpha}")
+    print(
+        f"Percentage of angle differences less than {alpha} degrees: {less_than_alpha}"
+    )
     writer.add_scalar("RMS angle difference", rms_angle_diff)
     print(f"RMS angle difference: {rms_angle_diff}")
 
