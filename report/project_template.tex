@@ -55,7 +55,7 @@ We conducted experiments to evaluate the performance of our model on the test se
 \paragraph{Evaluated Models}
 We compared our model to existing deep-learning-based methods for normal estimation on point clouds, including PCPNet \cite{guerrero2018pcpnet}, Nesti-Net, IterNet, DeepFit, AdaFit, and GraphFit, as well as two geometric methods, PCA and n-jets.
 \paragraph{Evaluation Protocol}
-When evaluating our method, we took the test set samples and replaced the ground truth normals with normals uniformly sampled from the unit sphere. We then ran the test set through 50 denoising steps with a DDIM sampler to obtain the final predicted normals.
+When evaluating our method, we took the test set samples and replaced the ground truth normals with normals uniformly sampled from the unit sphere. We then ran the test set through 50 denoising steps with a DDIM sampler and using the GLIDE cosine scheduler[https://arxiv.org/pdf/2112.10741] to obtain the final predicted normals.
 For evaluation we used the root-mean-squared-error (RMSE) of the angles (degrees) between the predicted normals and the ground truth normals.
 \begin{equation}
     \text{RMSE} = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(\arccos(|\hat{n}_i \cdot n_i|))^2}
@@ -88,6 +88,17 @@ We also evaluated the robustness of our model to noise by evaluating it on a noi
   \end{tabular}
   \end{table}
 
+\begin{table}[ht]
+  \centering
+  \caption{Comparison of normal estimation methods on the PCPNet test set.}
+  \label{tab:comparison}
+  \begin{tabular}{lcc}
+  \hline
+  \textbf{Model Size Factor} & \textbf{64} & \textbf{128} \\ \hline
+  RMSE & 12.11 & 22.77 \\ \hline
+  \end{tabular}
+  \end{table}
+
 Ultimately, on the clean test set, while our model managed to perform better than the geometric methods, it failed to reach the performance of competing deep learning based methods. Our method also does not generalize well to the noisy test sets. There may be several explanations as to why this is the case. Some of those methods, such as GraphFit, don't directly output the predicted normals but rather a set of coefficients that are used to geometrically fit a normal to the point cloud at a query point. This approach may be more stable than directly predicting the normals [AdaFit], however it does not fit our proposed regime of denoising a noisy feature space using graph neural networks as the denoising backbone. Additionally, as mentioned above, during training and inference at each timestep during the diffusion process we add Gaussian noise to the normals and renormalize the result. This introduces some differences between the diffusion process we use and the classical mathematically sound diffusion process described in [DDPM].
 
 
@@ -97,6 +108,8 @@ Finally, for the task of normal prediction, using flow matching [Flow Matching f
 
 \section{Conclusion}
 Conclude the project - what did you try to achieve, how you tried to achieve it, and did you manage to achieve that?  - one paragraph
+
+We proposed a novel method for normal estimation on point clouds using diffusion on the node features with graph neural networks, and evaluated its performance to see how competitive it is with existing methods. We showed that our method outperforms geometric methods but does not reach the performance of competing deep learning based methods, and does not generalize well to noisy test sets. We also discussed potential reasons for this and suggested future work.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
