@@ -66,6 +66,7 @@ def train_and_eval(config):
         writer=writer,
         device=device,
         min_training_timestep=config.training.min_training_timestep,
+        flip_normals=config.training.flip_normals,
         save_path=run_dir / "model.pth",
     )
 

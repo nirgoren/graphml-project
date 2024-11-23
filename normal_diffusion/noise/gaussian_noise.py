@@ -1,5 +1,7 @@
 import torch
 
+from normal_diffusion.utils.visualization import visualize_preds
+
 
 def add_gaussian_noise(mu, sigma):
     noise = torch.randn_like(mu) * sigma
@@ -30,8 +32,9 @@ if __name__ == "__main__":
     data = dataset[0]
     data.pos = data.pos[:10000]
     data.x = data.x[:10000]
-    normals = data.x[:, :3]
+    normals = data.x[:, :3].clone()
     visualize_pcd(data)
     for sigma in [0.1, 1, 10]:
-        data.x[:, :3] = add_gaussian_noise(normals, sigma)
-        visualize_pcd(data)
+        data.x[:, :3] = add_gaussian_noise(data.x[:, :3], sigma)
+        # visualize_pcd(data)
+        visualize_preds(data, normals)

@@ -9,6 +9,7 @@ training:
   min_training_timestep: 0
   lr: 1e-3
   batch_size: 4
+  flip_normals: True
 
 inference:
   batch_size: 1
