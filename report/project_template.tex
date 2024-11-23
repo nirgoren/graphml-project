@@ -58,11 +58,17 @@ We compared our model to existing deep-learning-based methods for normal estimat
 When evaluating our method, we took the test set samples and replaced the ground truth normals with normals uniformly sampled from the unit sphere. We then ran the test set through 50 denoising steps with a DDIM sampler to obtain the final predicted normals.
 For evaluation we used the root-mean-squared-error (RMSE) of the angles (degrees) between the predicted normals and the ground truth normals.
 \begin{equation}
-    \text{RMSE} = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(\arccos(\hat{n}_i \cdot n_i))^2}
+    \text{RMSE} = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(\arccos(|\hat{n}_i \cdot n_i|))^2}
 \end{equation}
-where $\hat{n}_i$ is the predicted normal (after being reoriented towards the ground truth normal) and $n_i$ is the ground truth normal for point $i$.
+where $\hat{n}_i$ is the predicted normal and $n_i$ is the ground truth normal for point $i$.
 
-We also evaluated the robustness of our model to noise by evaluating it on a noisy version of the PCPNet dataset (where the point positions are perturbed by a small amount of noise but the ground truth normals remain the same).
+We also evaluated the robustness of our model to noise by evaluating it on a noisy version of the PCPNet dataset (where the point positions are perturbed by a small amount of noise but the ground truth normals remain the same). where $(\cdot, \cdot)$ is the inner product of two vectors. The results are shown in Table \ref{tab:noise_comparison}. Additionally, we use the metric
+of the percentage of good points $\text{PGP}(\alpha)$ with an angle tolerance equal to $\alpha$ to
+report more detailed evaluation:
+
+\begin{equation}
+\text{PGP}(\alpha) = \frac{1}{N_p} \sum_{i=1}^{N_p} \mathbb{I} \big( \arccos(\hat{n}_i \cdot n_i) < \alpha \big),
+\end{equation}
  \subsection{Results}
  Discuss in details the results of your experiments. Did you succeed? what is the improvement \% ? provide cumulative analysis of the results. Discuss potential error, or suggest explanations to why the method failed if it failed - 
  1 page
@@ -74,19 +80,19 @@ We also evaluated the robustness of our model to noise by evaluating it on a noi
   \begin{tabular}{lccccccccc}
   \hline
   \textbf{Aug.} & \textbf{Ours} & \textbf{GraphFit} & \textbf{AdaFit} & \textbf{DeepFit} & \textbf{IterNet} & \textbf{Nesti-Net} & \textbf{PCPNet} & \textbf{Jet} & \textbf{PCA} \\ \hline
-  w/o Noise & 0 & 4.45  & 5.19  & 6.51  & 6.72  & 6.99  & 9.62  & 12.25 & 12.29 \\
-  $\sigma = 0.125\%$ & 0 & 8.74  & 9.05  & 9.21  & 9.95  & 10.11 & 11.37 & 12.84 & 12.87 \\
+  w/o Noise & 12.11 & 4.45  & 5.19  & 6.51  & 6.72  & 6.99  & 9.62  & 12.25 & 12.29 \\
+  $\sigma = 0.125\%$ & 35.84 & 8.74  & 9.05  & 9.21  & 9.95  & 10.11 & 11.37 & 12.84 & 12.87 \\
   $\sigma = 0.6\%$  & 0 & 16.05 & 16.44 & 16.72 & 17.18 & 17.63 & 18.87 & 18.33 & 18.38 \\
   $\sigma = 1.2\%$  & 0 & 21.64 & 21.94 & 23.12 & 21.96 & 22.28 & 23.28 & 27.68 & 27.50 \\ \hline
   \end{tabular}
   \end{table}
 
-Ultimately, on the clean test set, our model managed to perform better than the SOTA geometric methods, but failed to reach the performance of competing deep learning methods. Our method also does not generalize well to the noisy test sets. There may be several explanations as to why this is the case. Some of those methods, such as GraphFit, don't directly output the predicted normals but rather a set of coefficients that are used to geometrically fit a normal to the point cloud at a query point. This approach may be more stable than directly predicting the normals, however it does not fit our proposed regime of denoising a noisy feature space using graph neural networks as the denoising backbone.
+Ultimately, on the clean test set, our model managed to perform better than the geometric methods, but failed to reach the performance of competing deep learning methods. Our method also does not generalize well to the noisy test sets. There may be several explanations as to why this is the case. Some of those methods, such as GraphFit, don't directly output the predicted normals but rather a set of coefficients that are used to geometrically fit a normal to the point cloud at a query point. This approach may be more stable than directly predicting the normals [AdaFit], however it does not fit our proposed regime of denoising a noisy feature space using graph neural networks as the denoising backbone. Additionally, as mentioned above, during training and inference at each timestep during the diffusion process we add Gaussian noise to the normals and renormalize the result. This introduces some differences between the diffusion process we use and the classical mathematically sound diffusion process described in [DDPM].
 
 
 \section{Future work}
-Suggest 1-2 to continue your work or futhure improve you work.
-one-two paragraphs
+In designing our model we tried to be general and flexible, so that it can be easily adapted to other tasks. It might be interesing to see how our model performs on other tasks that involve predicting continuous features of nodes in graphs, such as color prediction of colored point clouds. Our approach can also potentially be used for other tasks such as denoising graph features, or tasks that involve generating diverse samples (of graphs) from a given distribution, for which diffusion models are known to be well-suited.
+Finally, for the task of normal prediction, using flow matching [Flow Matching for Generative Modeling] on the sphere instead of diffusion with normalization might be a more appropriate method for denoising the normals.
 
 \section{Conclusion}
 Conclude the project - what did you try to achieve, how you tried to achieve it, and did you manage to achieve that?  - one paragraph
