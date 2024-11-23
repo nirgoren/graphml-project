@@ -22,6 +22,22 @@ def squared_angle_difference_sum(pred_normals, gt_normals):
 
     return np.sum(angles_degrees ** 2)
 
+def count_angle_difference_less_than(pred_normals, gt_normals, threshold):
+    # Ensure vectors are normalized
+    pred_normals = pred_normals / np.linalg.norm(pred_normals, axis=-1, keepdims=True)
+    gt_normals = gt_normals / np.linalg.norm(gt_normals, axis=-1, keepdims=True)
+    
+    # Compute dot product and clamp values to avoid numerical issues
+    dot_products = np.abs(np.clip(np.sum(pred_normals * gt_normals, axis=-1), -1.0, 1.0))
+    
+    # Calculate angle in radians
+    angles = np.arccos(dot_products)
+    
+    # Convert angles to degrees if needed
+    angles_degrees = np.degrees(angles)
+
+    return np.sum(angles_degrees < threshold)
+
 def rms_angle_difference(pred_normals, gt_normals):
     
     squared_sum = squared_angle_difference_sum(pred_normals, gt_normals)

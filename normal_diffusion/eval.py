@@ -13,7 +13,7 @@ from torch_geometric.transforms import Compose, KNNGraph
 from tqdm import tqdm
 
 from normal_diffusion.data.transforms import KeepNormals
-from normal_diffusion.evaluation.evaluation import rms_angle_difference, squared_angle_difference_sum
+from normal_diffusion.evaluation.evaluation import count_angle_difference_less_than, rms_angle_difference, squared_angle_difference_sum
 from normal_diffusion.models import PositionInvariantModel
 
 
@@ -59,8 +59,10 @@ def inference_eval(config, model, test_dataloader, scheduler, writer, device):
     # Evaluate the model rms angle difference on the test set
     scheduler.set_timesteps(config.scheduler.num_inference_steps)
     model.eval()
+    alpha = 10
     nodes_total = 0
     squared_angle_diff_sum = 0
+    less_than_alpha = 0
     with torch.inference_mode():
         for i, batch_data in tqdm(enumerate(test_dataloader), desc="Batch"):
             batch_data = batch_data.to(device=device)
@@ -84,7 +86,10 @@ def inference_eval(config, model, test_dataloader, scheduler, writer, device):
                 batch_data.x /= torch.norm(batch_data.x, dim=-1, keepdim=True)
             estimated_normals = batch_data.x.cpu().numpy()
             squared_angle_diff_sum += squared_angle_difference_sum(estimated_normals, clean_normals)
+            less_than_alpha += count_angle_difference_less_than(estimated_normals, clean_normals, alpha)
     rms_angle_diff = np.sqrt(squared_angle_diff_sum / nodes_total)
+    less_than_alpha = less_than_alpha / nodes_total
+    print(f"Percentage of angle differences less than {alpha} degrees: {less_than_alpha}")
     writer.add_scalar("RMS angle difference", rms_angle_diff)
     print(f"RMS angle difference: {rms_angle_diff}")
 

@@ -62,13 +62,14 @@ For evaluation we used the root-mean-squared-error (RMSE) of the angles (degrees
 \end{equation}
 where $\hat{n}_i$ is the predicted normal and $n_i$ is the ground truth normal for point $i$.
 
-We also evaluated the robustness of our model to noise by evaluating it on a noisy version of the PCPNet dataset (where the point positions are perturbed by a small amount of noise but the ground truth normals remain the same). where $(\cdot, \cdot)$ is the inner product of two vectors. The results are shown in Table \ref{tab:noise_comparison}. Additionally, we use the metric
-of the percentage of good points $\text{PGP}(\alpha)$ with an angle tolerance equal to $\alpha$ to
-report more detailed evaluation:
+We also evaluated the robustness of our model to noise by evaluating it on a noisy version of the PCPNet dataset (where the point positions are perturbed by a small amount of noise but the ground truth normals remain the same). where $(\cdot, \cdot)$ is the inner product of two vectors. The results are shown in Table \ref{tab:noise_comparison}. 
+% Additionally, we use the metric
+% of the percentage of good points $\text{PGP}(\alpha)$ with an angle tolerance equal to $\alpha$ to
+% report more detailed evaluation:
 
-\begin{equation}
-\text{PGP}(\alpha) = \frac{1}{N_p} \sum_{i=1}^{N_p} \mathbb{I} \big( \arccos(\hat{n}_i \cdot n_i) < \alpha \big),
-\end{equation}
+% \begin{equation}
+% \text{PGP}(\alpha) = \frac{1}{N_p} \sum_{i=1}^{N_p} \mathbb{I} \big( \arccos(\hat{n}_i \cdot n_i) < \alpha \big),
+% \end{equation}
  \subsection{Results}
  Discuss in details the results of your experiments. Did you succeed? what is the improvement \% ? provide cumulative analysis of the results. Discuss potential error, or suggest explanations to why the method failed if it failed - 
  1 page
@@ -87,7 +88,7 @@ report more detailed evaluation:
   \end{tabular}
   \end{table}
 
-Ultimately, on the clean test set, our model managed to perform better than the geometric methods, but failed to reach the performance of competing deep learning methods. Our method also does not generalize well to the noisy test sets. There may be several explanations as to why this is the case. Some of those methods, such as GraphFit, don't directly output the predicted normals but rather a set of coefficients that are used to geometrically fit a normal to the point cloud at a query point. This approach may be more stable than directly predicting the normals [AdaFit], however it does not fit our proposed regime of denoising a noisy feature space using graph neural networks as the denoising backbone. Additionally, as mentioned above, during training and inference at each timestep during the diffusion process we add Gaussian noise to the normals and renormalize the result. This introduces some differences between the diffusion process we use and the classical mathematically sound diffusion process described in [DDPM].
+Ultimately, on the clean test set, while our model managed to perform better than the geometric methods, it failed to reach the performance of competing deep learning based methods. Our method also does not generalize well to the noisy test sets. There may be several explanations as to why this is the case. Some of those methods, such as GraphFit, don't directly output the predicted normals but rather a set of coefficients that are used to geometrically fit a normal to the point cloud at a query point. This approach may be more stable than directly predicting the normals [AdaFit], however it does not fit our proposed regime of denoising a noisy feature space using graph neural networks as the denoising backbone. Additionally, as mentioned above, during training and inference at each timestep during the diffusion process we add Gaussian noise to the normals and renormalize the result. This introduces some differences between the diffusion process we use and the classical mathematically sound diffusion process described in [DDPM].
 
 
 \section{Future work}
