@@ -20,8 +20,25 @@ def train_and_eval(config):
 
     dataloader = get_dataloader(batch_size=config.training.batch_size, knn=k, split="train", category="NoNoise")
     test_dataloader = get_dataloader(batch_size=config.inference.batch_size, knn=k, split="test", shuffle=False, category=config.dataset.category)
+    dataloader = get_dataloader(
+        batch_size=config.training.batch_size,
+        knn=k,
+        split="train",
+        shapenet=config.dataset.shapenet,
+        category="NoNoise",
+    )
+    test_dataloader = get_dataloader(
+        batch_size=config.inference.batch_size,
+        knn=k,
+        split="test",
+        shuffle=False,
+        shapenet=config.dataset.shapenet,
+        category=config.dataset.category,
+    )
 
-    model = PositionInvariantModel(N=config.model.model_dim, attention=config.model.attention).to(device)
+    model = PositionInvariantModel(
+        N=config.model.model_dim, attention=config.model.attention
+    ).to(device)
 
     scheduler = DDIMScheduler(
         num_train_timesteps=config.scheduler.num_train_timesteps,
@@ -33,7 +50,7 @@ def train_and_eval(config):
     run_dir = Path("runs/" + now)
     run_dir.mkdir(parents=True, exist_ok=True)
     OmegaConf.save(config, run_dir / "config.yaml")
-    
+
     # Setup TensorBoard
     log_dir = run_dir / "logs"
 
@@ -49,10 +66,8 @@ def train_and_eval(config):
         writer=writer,
         device=device,
         min_training_timestep=config.training.min_training_timestep,
+        save_path=run_dir / "model.pth",
     )
-
-    # save the model
-    torch.save(model.state_dict(), run_dir / "model.pth")
 
     inference_eval(config, model, test_dataloader, scheduler, writer, device)
 

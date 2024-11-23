@@ -16,6 +16,7 @@ inference:
 dataset:
   knn: 6
   category: "NoNoise" # NoNoise, LowNoise, MedNoise, HighNoise
+  shapenet: False
 
 model:
   model_dim: 64

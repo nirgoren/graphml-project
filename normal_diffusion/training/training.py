@@ -1,3 +1,4 @@
+from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -59,6 +60,7 @@ def train_diffusion(
     device: torch.device | str = "cpu",
     min_training_timestep: int = 0,
     flip_normals: bool = False,
+    save_path: Path | str | None = None,
 ):
     if writer is not None:
         writer.add_text("model", str(model))
@@ -78,6 +80,9 @@ def train_diffusion(
             timesteps = torch.randint(
                 min_training_timestep, scheduler.config.num_train_timesteps, (batch_size,)
             ).to(device=device)
+            if batch_data.batch is None:
+                # If the batch data does not have a batch attribute, we use a single timestep for all points
+                batch_data.batch = torch.zeros(batch_data.x.size(0), dtype=torch.long)
             timesteps = timesteps[batch_data.batch]
             batch_data.x = scheduler.add_noise(batch_data.x, noise, timesteps)
             if flip_normals:
@@ -98,9 +103,11 @@ def train_diffusion(
                 writer.add_scalar(
                     "loss", loss.item(), epoch * len(train_dataloader) + i
                 )
-
+        
         print(f"Epoch {epoch+1}/{n_epochs}, Train Loss: {total_loss / (i+1):.4f}")
         if (epoch + 1) % 10 == 0:
             evaluate_diffusion(
                 model, test_dataloader, scheduler, epoch, n_epochs, writer, device, min_training_timestep, flip_normals
             )
+            torch.save(model.state_dict(), save_path)
+
