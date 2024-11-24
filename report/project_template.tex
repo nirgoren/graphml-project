@@ -162,10 +162,10 @@ We also evaluated the robustness of our model to noise by evaluating it on a noi
   \begin{tabular}{lccc}
   \hline
   \textbf{Aggregation} & \textbf{attentional} & \textbf{mean} & \textbf{max} \\ \hline
-  RMSE & 11.01 & - & 12.10 \\ \hline
+  RMSE & 11.01 & 15.50 & 12.10 \\ \hline
   \end{tabular}
   \end{table}
-Ultimately, on the clean test set, while our model managed to perform better than the geometric methods, it failed to reach the performance of competing deep learning based methods. Our method also does not generalize well to the noisy test sets. There may be several explanations as to why this is the case. Some of those methods, such as GraphFit, don't directly output the predicted normals but rather a set of coefficients that are used to geometrically fit a normal to the point cloud at a query point. This approach may be more stable than directly predicting the normals [AdaFit], however it does not fit our proposed regime of denoising a noisy feature space using graph neural networks as the denoising backbone. Additionally, as mentioned above, during training and inference at each timestep during the diffusion process we add Gaussian noise to the normals and renormalize the result. This introduces some differences between the diffusion process we use and the classical mathematically sound diffusion process described in [DDPM].
+Ultimately, on the clean test set, while our model managed to perform better than the geometric methods, it failed to reach the performance of competing deep learning based methods. Our method also does not generalize well to the noisy test sets. There may be several explanations as to why this is the case. Some of those methods, such as GraphFit, don't directly output the predicted normals but rather a set of coefficients that are used to geometrically fit a normal to the point cloud at a query point. This approach may be more stable than directly predicting the normals \cite{zhu2021adafit}, however it does not fit our proposed regime of denoising a noisy feature space using graph neural networks as the denoising backbone. Additionally, as mentioned above, during training and inference at each timestep during the diffusion process we add Gaussian noise to the normals and renormalize the result. This introduces some differences between the diffusion process we use and the classical mathematically sound diffusion process described in \cite{ho2020denoising}.
 
 
 \section{Future work}
