@@ -74,7 +74,7 @@ Since GNNs excel at learning local relations, yet may struggle with global conte
 
 
 \paragraph{Model Architecture}
-Our model consists of a 3 GNN message passing layers with attentional aggregation \cite{li2019graph}, which takes as input the 3D coordinates of the points, the noisy normals and the diffusion timestep. The message passing is done on a graph constructed by connecting edges for the points using K-nearest neighbors using the points positions in space. The attentional aggregation uses a 2 layer MPL for computing the attention scores, and a 3 layer MLP on node features before aggregating them. We use ReLU activation functions after each layer and in the attention MLPs. In each message passing layer, we augment the messages by concatenating the features of the target node, as well as sinusoidal time embeddings of the diffusion timestep, and a relative position (direction vector between the target node and the source node) similar to \cite{qi2017pointnet++}, which we project to a higher dimension using a pointwise convolution. Using the relative position as a feature allows the model to learn the geometric relationships between the points while still being invariant to global translation and equivariant to rotation. The output of the GNN is a set of predicted normals for each point in the point cloud.
+Our model consists of a 3 GNN message passing layers with attentional aggregation \cite{li2019graph}, which takes as input the 3D coordinates of the points, the noisy normals and the diffusion timestep. The message passing is done on a graph constructed by connecting edges for the points using K-nearest neighbors using the points positions in space. The attentional aggregation uses a 2 layer MPL for computing the attention scores, and a 3 layer MLP on node features before aggregating them. We use ReLU activation functions after each layer and in the attention MLPs. In each message passing layer, we augment the messages by concatenating the features of the target node, as well as sinusoidal time embeddings of the diffusion timestep, and a relative position (direction vector between the target node and the source node) similar to \cite{qi2017pointnet++}, which we project to a higher dimension using a pointwise convolution, which we have found necessary for training to converge. Using the relative position as a feature allows the model to learn the geometric relationships between the points while still being invariant to global translation and equivariant to rotation. The output of the GNN is a set of predicted normals for each point in the point cloud.
 
 
 \paragraph{Training Process}
@@ -82,33 +82,33 @@ We train the model using the DDPM training process, where for each sample we dra
 \begin{equation}
   \mathcal{L}_{\text{unoriented}} = -\sum_i \left|n_i \cdot \hat{n}_i\right|  
 \end{equation}
-where $n_i$ is the ground truth normal for point $i$, which we flip with probability 0.5 (for better convenance in inference), and $\hat{n}_i$ is the predicted normal. The predicted normal is obtain using:
+where $n_i$ is the ground truth normal for point $i$, which we flip with probability 0.5 (to make the model agnostic to normal orientations for better convergence during inference), and $\hat{n}_i$ is the predicted normal. The predicted normal is obtained using:
 \begin{equation}
     \hat{n}_i = \frac{f(\tilde{n}_i^t, p_i, t_i)}{||f(\tilde{n}_i^t, p_i, t_i)||}
 \end{equation}
 where $f$ is the GNN model, $\tilde{n}_i^t$ is the noisy normal at timestep $t$, $p_i$ is the 3D position of point $i$, and $t_i$ is the diffusion timestep. We use the Adam optimizer with a learning rate of 0.001.
 
 \paragraph{Inference}
-We use DDPM sampling for inference. We start with noisy normals, and run the GNN model tp get the predicited normals in a similar way to the training process. We then noise the predicted normals and renormalize them, and repeat this process for 50 timesteps, where each time we reduce the amount of noise we add according to the noise schedule. We then use the predicted normals at the final step as the final output.
+We use DDIM sampling for inference. We start with noisy normals, and run the GNN model tp get the predicited normals in a similar way to the training process. We then noise the predicted normals and renormalize them, and repeat this process for 50 timesteps, where each time we reduce the amount of noise we add according to the noise schedule. We then use the predicted normals at the final step as the final output.
 
 \section{Experiments and Results}
 \textcolor{red}{Describe in details the experiments you conducted, the datasets you use, the evaluation metric and models/other methods you compared to, how you generated your splits / where did you take the splits from, etc. Make sure to explain every experiment you show, what is the goal of this experiment? If needed, include running time /memory report, etc.
 This is also the place to include details on your implementation, e.g. which libraries did you use, and a link to public github with the code (can be anonymous github) - 1-2 pages}
 
 \paragraph{Implementation}
-We implemented our model in PyTorch and used the PyTorch Geometric library for graph operations. Our model consists of a graph neural network with 3 layers with varying input and output dimesions. We used the ReLU activation function after each layer, a time-embedding dimension of 32 and a relative-position-embedding dimension of 12, and used K=6 for kNN. We experimented with both attentional aggregation and mean aggregation, but found that the attentional aggregation performed better. Our code is available at \url{https://github.com/nirgoren/graphml-project}.
+We implemented our model in PyTorch and used the PyTorch Geometric library for graph operations. Our model consists of a graph neural network with 3 layers with varying input and output dimesions, proportional to model size factor K. We used the ReLU activation function after each layer, a time-embedding dimension of 32 and a relative-position-embedding dimension of 12, and used K=6 for kNN. We experimented with both attentional aggregation and mean aggregation, but found that the attentional aggregation performed better. Our code is available at \url{https://github.com/nirgoren/graphml-project}.
 
 \paragraph{Datasets}
-We trained our model on the synthetic PCPNet dataset \cite{guerrero2018pcpnet} and evaluated it on the PCPNet test set and the SceneNN dataset \cite{scenenn-3dv16}. The PCPNet dataset contains 27 point clouds (8 for training and 19 for testing) sampled uniformly from meshes with 100,000 points. We also tried to incorporate the ShapeNet dataset \cite{chang2015shapenet} into our training data, but the performance seemed to degrade, so we did not include it in our final model. This might be due to a domain gap between the two datasets which may result a performance decline for models with stronger learning capabilities \cite{arXiv:2406.09681}.
+We trained our model on the synthetic PCPNet dataset \cite{guerrero2018pcpnet} and evaluated it on the PCPNet test set. The PCPNet dataset contains 27 point clouds (8 for training and 19 for testing) sampled uniformly from meshes with 100,000 points. We also tried to incorporate the ShapeNet dataset \cite{shapenet2015} into our training data, but the performance seemed to degrade, so we did not include it in our final model. This might be due to a domain gap between the two datasets which may result a performance decline for models with stronger learning capabilities \cite{jin2024asymmetrical}.
 
 We trained our model using the Adam optimzier with a batch size of 4 and learning rate of 0.001, for 6000 epochs in total, with 1000 timesteps. Training took approximately 5 hours on a single NVIDIA RTX 3090 GPU.
 
 We conducted experiments to evaluate the performance of our model on the test set of the PCPNet dataset.
 
 \paragraph{Evaluated Models}
-We compared our model to existing deep-learning-based methods for normal estimation on point clouds, including PCPNet \cite{guerrero2018pcpnet}, Nesti-Net, IterNet, DeepFit, AdaFit, and GraphFit, as well as two geometric methods, PCA and n-jets.
+We compared our model to existing deep-learning-based methods for normal estimation on point clouds, including PCPNet \cite{guerrero2018pcpnet}, Nesti-Net \cite{Ben-Shabat_2019_CVPR}, IterNet \cite{lenssen2020deep}, DeepFit \cite{ben2020deepfit}, AdaFit \cite{zhu2021adafit}, and GraphFit \cite{li2022graphfit}, as well as two geometric methods, PCA and n-jets \cite{CAZALS2005121}.
 \paragraph{Evaluation Protocol}
-When evaluating our method, we took the test set samples and replaced the ground truth normals with normals uniformly sampled from the unit sphere. We then ran the test set through 50 denoising steps with a DDIM sampler and using the GLIDE cosine scheduler[https://arxiv.org/pdf/2112.10741] to obtain the final predicted normals.
+When evaluating our method, we took the test set samples and replaced the ground truth normals with normals uniformly sampled from the unit sphere. We then ran the test set through 50 denoising steps with a DDIM sampler and using the GLIDE cosine scheduler \cite{DBLP:journals/corr/abs-2112-10741} to obtain the final predicted normals. Inference took approximately 2 seconds per point cloud on a single NVIDIA RTX 3090 GPU.
 For evaluation we used the root-mean-squared-error (RMSE) of the angles (degrees) between the predicted normals and the ground truth normals.
 \begin{equation}
     \text{RMSE} = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(\arccos(|\hat{n}_i \cdot n_i|))^2}
@@ -116,13 +116,6 @@ For evaluation we used the root-mean-squared-error (RMSE) of the angles (degrees
 where $\hat{n}_i$ is the predicted normal and $n_i$ is the ground truth normal for point $i$.
 
 We also evaluated the robustness of our model to noise by evaluating it on a noisy version of the PCPNet dataset (where the point positions are perturbed by a small amount of noise but the ground truth normals remain the same). where $(\cdot, \cdot)$ is the inner product of two vectors. The results are shown in Table \ref{tab:noise_comparison}. Furthermore, we evaluated the effect of the model size on the performance of our model, as shown in Table \ref{tab:size_comparison}, the effects of different aggregation methods, as shown in Table \ref{tab:aggregation_comparison} and the effect of unoriented normal augmentation on the performance of our model, as shown in Table \ref{tab:augmentation_comparison}.
-% Additionally, we use the metric
-% of the percentage of good points $\text{PGP}(\alpha)$ with an angle tolerance equal to $\alpha$ to
-% report more detailed evaluation:
-
-% \begin{equation}
-% \text{PGP}(\alpha) = \frac{1}{N_p} \sum_{i=1}^{N_p} \mathbb{I} \big( \arccos(\hat{n}_i \cdot n_i) < \alpha \big),
-% \end{equation}
  \subsection{Results}
  \textcolor{red}{Discuss in details the results of your experiments. Did you succeed? what is the improvement \% ? provide cumulative analysis of the results. Discuss potential error, or suggest explanations to why the method failed if it failed - 
  1 page}
@@ -134,7 +127,7 @@ We also evaluated the robustness of our model to noise by evaluating it on a noi
   \begin{tabular}{lccccccccc}
   \hline
   \textbf{Aug.} & \textbf{Ours} & \textbf{GraphFit} & \textbf{AdaFit} & \textbf{DeepFit} & \textbf{IterNet} & \textbf{Nesti-Net} & \textbf{PCPNet} & \textbf{Jet} & \textbf{PCA} \\ \hline
-  w/o Noise & 12.11 & 4.45  & 5.19  & 6.51  & 6.72  & 6.99  & 9.62  & 12.25 & 12.29 \\
+  w/o Noise & 11.01 & 4.45  & 5.19  & 6.51  & 6.72  & 6.99  & 9.62  & 12.25 & 12.29 \\
   $\sigma = 0.125\%$ & 35.84 & 8.74  & 9.05  & 9.21  & 9.95  & 10.11 & 11.37 & 12.84 & 12.87 \\
   $\sigma = 0.6\%$  & 59.17 & 16.05 & 16.44 & 16.72 & 17.18 & 17.63 & 18.87 & 18.33 & 18.38 \\
   $\sigma = 1.2\%$  & 60.80 & 21.64 & 21.94 & 23.12 & 21.96 & 22.28 & 23.28 & 27.68 & 27.50 \\ \hline
@@ -143,18 +136,18 @@ We also evaluated the robustness of our model to noise by evaluating it on a noi
 
 \begin{table}[ht]
   \centering
-  \caption{Comparison of model size on the PCPNet test set.}
+  \caption{Comparison of model size factor on the PCPNet test set.}
   \label{tab:size_comparison}
   \begin{tabular}{lcc}
   \hline
-  \textbf{Model Size Factor} & \textbf{64} & \textbf{128} \\ \hline
+  \textbf{Model Size Factor K} & \textbf{64} & \textbf{128} \\ \hline
   RMSE & 11.01 & 20.77 \\ \hline
   \end{tabular}
   \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Comparison of unoriented normal augmentation on the PCPNet test set.}
+  \caption{Comparison of unoriented normal augmentation (where the ground truth normals are randomly flipped during training) on the PCPNet test set.}
   \label{tab:augmentation_comparison}
   \begin{tabular}{lcc}
   \hline
