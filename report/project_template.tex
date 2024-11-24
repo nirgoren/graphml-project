@@ -62,7 +62,7 @@ For evaluation we used the root-mean-squared-error (RMSE) of the angles (degrees
 \end{equation}
 where $\hat{n}_i$ is the predicted normal and $n_i$ is the ground truth normal for point $i$.
 
-We also evaluated the robustness of our model to noise by evaluating it on a noisy version of the PCPNet dataset (where the point positions are perturbed by a small amount of noise but the ground truth normals remain the same). where $(\cdot, \cdot)$ is the inner product of two vectors. The results are shown in Table \ref{tab:noise_comparison}. Furthermore, we evaluated the effect of the model size on the performance of our model, as shown in Table \ref{tab:size_comparison}, and the effect of unoriented normal augmentation on the performance of our model, as shown in Table \ref{tab:augmentation_comparison}.
+We also evaluated the robustness of our model to noise by evaluating it on a noisy version of the PCPNet dataset (where the point positions are perturbed by a small amount of noise but the ground truth normals remain the same). where $(\cdot, \cdot)$ is the inner product of two vectors. The results are shown in Table \ref{tab:noise_comparison}. Furthermore, we evaluated the effect of the model size on the performance of our model, as shown in Table \ref{tab:size_comparison}, the effects of different aggregation methods, as shown in Table \ref{tab:aggregation_comparison} and the effect of unoriented normal augmentation on the performance of our model, as shown in Table \ref{tab:augmentation_comparison}.
 % Additionally, we use the metric
 % of the percentage of good points $\text{PGP}(\alpha)$ with an angle tolerance equal to $\alpha$ to
 % report more detailed evaluation:
@@ -107,6 +107,16 @@ We also evaluated the robustness of our model to noise by evaluating it on a noi
   \hline
   \textbf{Augmentation} & \textbf{With} & \textbf{Without} \\ \hline
   RMSE & 11.01 & 12.11 \\ \hline
+  \end{tabular}
+  \end{table}
+\begin{table}[ht]
+  \centering
+  \caption{Comparison of aggregation method on the PCPNet test set.}
+  \label{tab:aggregation_comparison}
+  \begin{tabular}{lccc}
+  \hline
+  \textbf{Aggregation} & \textbf{attentional} & \textbf{mean} & \textbf{max} \\ \hline
+  RMSE & 11.01 & 12.10 & - \\ \hline
   \end{tabular}
   \end{table}
 Ultimately, on the clean test set, while our model managed to perform better than the geometric methods, it failed to reach the performance of competing deep learning based methods. Our method also does not generalize well to the noisy test sets. There may be several explanations as to why this is the case. Some of those methods, such as GraphFit, don't directly output the predicted normals but rather a set of coefficients that are used to geometrically fit a normal to the point cloud at a query point. This approach may be more stable than directly predicting the normals [AdaFit], however it does not fit our proposed regime of denoising a noisy feature space using graph neural networks as the denoising backbone. Additionally, as mentioned above, during training and inference at each timestep during the diffusion process we add Gaussian noise to the normals and renormalize the result. This introduces some differences between the diffusion process we use and the classical mathematically sound diffusion process described in [DDPM].
