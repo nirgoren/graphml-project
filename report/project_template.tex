@@ -20,20 +20,21 @@
 
 \date{}
 
+\setcopyright{none}
 
+\newcommand{\instructions}[1]{\textcolor{red}{#1}\newline}
+%\renewcommand{\instructions}[1]{}    % comment/uncomment this line to show/hide instructions
 
 \begin{document}
 
 \begin{abstract}
-\textcolor{red}{TL;DR of this project -  one paragraph}
-
+\instructions{TL;DR of this project -  one paragraph}
 Normal estimation for point clouds is an important problem in 3D computer vision and graphics, essential for tasks like denoising, surface reconstruction, and segmentation. We propose a novel framework leveraging Denoising Diffusion Probabilistic Models (DDPM) for point cloud normal estimation. By incorporating Graph Neural Networks (GNNs) as the backbone for the diffusion process, our approach effectively captures intricate geometric relationships in point clouds.
 \end{abstract}
 \maketitle
 
 \section{Introduction}
-\textcolor{red}{Explain the background and the problem you are trying to solve in this project - 0.5-1 page}
-
+\instructions{Explain the background and the problem you are trying to solve in this project - 0.5-1 page}
 Estimating normals for point clouds is a fundamental challenge in 3D computer vision and computer graphics, with many practical applications. Typically, scanned point clouds provide only spatial coordinates and may be affected by issues such as varying sampling density, noise, outliers, or texture artifacts, while lacking key local surface properties like normals. High-quality normal estimation plays an important role in downstream tasks, including point cloud denoising \cite{lu2020deep,lu2020low}, surface reconstruction \cite{kazhdan2006poisson,fleishman2005robust}, and model segmentation \cite{che2018multi}.
 Although normal estimation has been studied extensively, it remains an open problem. Traditional approaches often rely on techniques like Principal Component Analysis (PCA) \cite{hoppe1992surface} and Singular Value Decomposition (SVD) \cite{pauly2002efficient}. While effective for clean and simple datasets, these methods struggle with noisy data, outliers, and complex geometries. Additionally, their performance is highly sensitive to parameter tuning.
 Recently, learning-based approaches are used, aiming to directly regress normals and showing promising results \cite{guerrero2018pcpnet,ben2019nesti,zhou2020geometry,wang2020neighbourhood,hashimoto2019normal}, as well as combining geometric methods with learning, such as weighted least-squares (WLS) \cite{lenssen2020deep,ben2020deepfit,zhang2022geometry,zhu2021adafit}, where point-wise weights are predicted to improve robustness and accuracy. While WLS enhances performance, estimating precise normals in complex regions remains challenging.
@@ -41,8 +42,7 @@ Recently, learning-based approaches are used, aiming to directly regress normals
 In this project, we propose leveraging Denoising Diffusion Probabilistic Models (DDPM) \cite{ho2020denoising} for normal estimation in point clouds. DDPM, a class of generative models known for their ability to learn complex distributions through a diffusion process, provides a robust framework to capture complex geometric relationships within local neighborhoods. By using a Graph Neural Network (GNN) as the backbone for the diffusion process in DDPM we can leverage the diffusion process for learning on non-Euclidean data, such as point clouds.
 
 \section{Related Work}
-\textcolor{red}{Literature review of related works, e.g. if you only focus on MPGNNs : Message-Passing graph neural network are a popular class of neural networks which...\cite{morris2021weisfeiler} - 0.5-1 page}
-
+\instructions{Literature review of related works, e.g. if you only focus on MPGNNs : Message-Passing graph neural network are a popular class of neural networks which...\cite{morris2021weisfeiler} - 0.5-1 page}
 \subsection{Point Cloud Normal Estimation}
 Classical methods for normal estimation in point clouds primarily rely on geometric and statistical techniques. These methods often define a local neighborhood around each point and estimate the normal vector based on the spatial arrangement of points in that neighborhood. Among the most widely used approaches are Principal Component Analysis (PCA) \cite{hoppe1992surface} and Singular Value Decomposition (SVD) \cite{pauly2002efficient}.
 Both methods work similarly by choosing the direction with smallest variance. These approaches are computationally efficient and effective for clean and uniformly sampled point clouds.
@@ -65,8 +65,7 @@ In the context of 3D point clouds, GNNs have been widely adopted for feature lea
 Additionaly, using GNNs as the denoising kernel for the diffusion processes has been shown to be successful in fields such as anomaly detection \cite{ConGNN_2024} and protein generation \cite{ingraham2023illuminating}.
 
 \section{Method}
-\textcolor{red}{Begin in giving intuition to the solution you are proposing, then formally detail the method/approach you are suggesting -  1 page}
-
+\instructions{Begin in giving intuition to the solution you are proposing, then formally detail the method/approach you are suggesting -  1 page}
 Our proposed method for normal estimation on point clouds leverages Denoising Diffusion Probabilistic Models (DDPM) with Graph Neural Networks (GNNs) as the denoising kernel. The goal is to learn a robust and accurate normal estimation model. By combining the diffusion process of DDPM with the feature learning capabilities of GNNs, we aim to capture complex geometric relationships within local neighborhoods and improve the quality of normal predictions.
 
 \paragraph{Learning Objective}
@@ -89,17 +88,17 @@ where $n_i$ is the ground truth normal for point $i$, which we flip with probabi
 where $f$ is the GNN model, $\tilde{n}_i^t$ is the noisy normal at timestep $t$, $p_i$ is the 3D position of point $i$, and $t_i$ is the diffusion timestep. We use the Adam optimizer with a learning rate of 0.001.
 
 \paragraph{Inference}
-We use DDIM sampling for inference. We start with noisy normals, and run the GNN model tp get the predicited normals in a similar way to the training process. We then noise the predicted normals and renormalize them, and repeat this process for 50 timesteps, where each time we reduce the amount of noise we add according to the noise schedule. We then use the predicted normals at the final step as the final output.
+We use DDIM sampling \cite{song2020denoising} for inference. We start with noisy normals, and run the GNN model to get the predicited normals in a similar way to the training process. We then interpolate linearly between the predicted normals and the noisy normals using a schedule that gives more weight to the predicted normals over timesteps, and repeat this process for 50 timesteps. We then use the predicted normals at the final step as the final output.
 
 \section{Experiments and Results}
-\textcolor{red}{Describe in details the experiments you conducted, the datasets you use, the evaluation metric and models/other methods you compared to, how you generated your splits / where did you take the splits from, etc. Make sure to explain every experiment you show, what is the goal of this experiment? If needed, include running time /memory report, etc.
+\instructions{Describe in details the experiments you conducted, the datasets you use, the evaluation metric and models/other methods you compared to, how you generated your splits / where did you take the splits from, etc. Make sure to explain every experiment you show, what is the goal of this experiment? If needed, include running time /memory report, etc.
 This is also the place to include details on your implementation, e.g. which libraries did you use, and a link to public github with the code (can be anonymous github) - 1-2 pages}
 
 \paragraph{Implementation}
-We implemented our model in PyTorch and used the PyTorch Geometric library for graph operations. Our model consists of a graph neural network with 3 layers with varying input and output dimesions, proportional to model size factor K. We used the ReLU activation function after each layer, a time-embedding dimension of 32 and a relative-position-embedding dimension of 12, and used K=6 for kNN. We experimented with both attentional aggregation and mean aggregation, but found that the attentional aggregation performed better. Our code is available at \url{https://github.com/nirgoren/graphml-project}.
+We implemented our model in PyTorch and used the PyTorch-Geometric library for graph operations. Our model consists of a graph neural network with 3 layers with varying input and output dimesions. We used the ReLU activation function after each layer, a time-embedding dimension of 32 and a relative-position-embedding dimension of 12, and used K=6 for kNN. We experimented with both attentional aggregation and mean aggregation, but found that the attentional aggregation performed better. Our code is available at \url{https://github.com/nirgoren/graphml-project}.
 
 \paragraph{Datasets}
-We trained our model on the synthetic PCPNet dataset \cite{guerrero2018pcpnet} and evaluated it on the PCPNet test set. The PCPNet dataset contains 27 point clouds (8 for training and 19 for testing) sampled uniformly from meshes with 100,000 points. We also tried to incorporate the ShapeNet dataset \cite{shapenet2015} into our training data, but the performance seemed to degrade, so we did not include it in our final model. This might be due to a domain gap between the two datasets which may result a performance decline for models with stronger learning capabilities \cite{jin2024asymmetrical}.
+We trained our model on the synthetic PCPNet dataset \cite{guerrero2018pcpnet} and evaluated it on the PCPNet test set. The PCPNet dataset contains 27 point clouds (8 for training and 19 for testing) sampled uniformly from meshes with 100,000 points. We also tried to incorporate the ShapeNet dataset \cite{shapenet2015} into our training data, which is considerably larger, but the performance seemed to degrade using the same training duration, so we did not include it in our final model. This might be due to a domain gap between the two datasets which may result in a slower training for models with stronger learning capabilities \cite{jin2024asymmetrical}.
 
 We trained our model using the Adam optimzier with a batch size of 4 and learning rate of 0.001, for 6000 epochs in total, with 1000 timesteps. Training took approximately 5 hours on a single NVIDIA RTX 3090 GPU.
 
@@ -113,11 +112,11 @@ For evaluation we used the root-mean-squared-error (RMSE) of the angles (degrees
 \begin{equation}
     \text{RMSE} = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(\arccos(|\hat{n}_i \cdot n_i|))^2}
 \end{equation}
-where $\hat{n}_i$ is the predicted normal and $n_i$ is the ground truth normal for point $i$.
+where $\hat{n}_i$ is the predicted normal, $n_i$ is the ground truth normal for point $i$, and $(\cdot, \cdot)$ is the inner product of two vectors.
 
-We also evaluated the robustness of our model to noise by evaluating it on a noisy version of the PCPNet dataset (where the point positions are perturbed by a small amount of noise but the ground truth normals remain the same). where $(\cdot, \cdot)$ is the inner product of two vectors. The results are shown in Table \ref{tab:noise_comparison}. Furthermore, we evaluated the effect of the model size on the performance of our model, as shown in Table \ref{tab:size_comparison}, the effects of different aggregation methods, as shown in Table \ref{tab:aggregation_comparison} and the effect of unoriented normal augmentation on the performance of our model, as shown in Table \ref{tab:augmentation_comparison}.
+We also evaluated the robustness of our model to noise by evaluating it on a noisy version of the PCPNet dataset (where the point positions are perturbed by a small amount of noise but the ground truth normals remain the same). The results are shown in Table \ref{tab:noise_comparison}. Furthermore, we evaluated the effect of the model size on the performance of our model, as shown in Table \ref{tab:size_comparison}, the effects of different aggregation methods, as shown in Table \ref{tab:aggregation_comparison} and the effect of unoriented normal augmentation on the performance of our model, as shown in Table \ref{tab:augmentation_comparison}.
  \subsection{Results}
- \textcolor{red}{Discuss in details the results of your experiments. Did you succeed? what is the improvement \% ? provide cumulative analysis of the results. Discuss potential error, or suggest explanations to why the method failed if it failed - 
+ \instructions{Discuss in details the results of your experiments. Did you succeed? what is the improvement \% ? provide cumulative analysis of the results. Discuss potential error, or suggest explanations to why the method failed if it failed - 
  1 page}
 
  \begin{table}[ht]
@@ -166,18 +165,17 @@ We also evaluated the robustness of our model to noise by evaluating it on a noi
   \end{tabular}
   \end{table}
 Ultimately, on the clean test set, while our model managed to perform better than the geometric methods, it failed to reach the performance of competing deep learning based methods. Our method also does not generalize well to the noisy test sets. There may be several explanations as to why this is the case. Some of those methods, such as GraphFit, don't directly output the predicted normals but rather a set of coefficients that are used to geometrically fit a normal to the point cloud at a query point. This approach may be more stable than directly predicting the normals \cite{zhu2021adafit}, however it does not fit our proposed regime of denoising a noisy feature space using graph neural networks as the denoising backbone. Additionally, as mentioned above, during training and inference at each timestep during the diffusion process we add Gaussian noise to the normals and renormalize the result. This introduces some differences between the diffusion process we use and the classical mathematically sound diffusion process described in \cite{ho2020denoising}.
+Lastly, we note that by scaling up the neighborhood size $K$ for k-NN (e.g. GraphFit used $K=256,500,700$), the model size, and the data we might achieve significantly better results, however these changes, especially the increase in $K$, lead to a significant increase in the computational cost and memory consumption of training the model, and therefore we were unable to train the model at such a scale using the computational resource available to us and the time scope of this project.
 
 
 \section{Future work}
-\textcolor{red}{Suggest 1-2 to continue your work or futhure improve you work.
+\instructions{Suggest 1-2 to continue your work or futhure improve you work.
 one-two paragraphs}
-
 In designing our model we tried to be general and flexible, so that it can be easily adapted to other tasks. It might be interesing to see how our model performs on other tasks that involve predicting continuous features of nodes in graphs, such as color prediction of colored point clouds. Our approach can also potentially be used for other tasks such as denoising graph features, or tasks that involve generating diverse samples (of graphs) from a given distribution, for which diffusion models are known to be well-suited.
-Finally, for the task of normal prediction, using flow matching [Flow Matching for Generative Modeling] on the sphere instead of diffusion with normalization might be a more appropriate method for denoising the normals.
+Finally, for the task of normal prediction, using flow matching \cite{lipman2023flowmatchinggenerativemodeling} on the sphere instead of diffusion with normalization might be a more appropriate method for denoising the normals.
 
 \section{Conclusion}
-\textcolor{red}{Conclude the project - what did you try to achieve, how you tried to achieve it, and did you manage to achieve that?  - one paragraph}
-
+\instructions{Conclude the project - what did you try to achieve, how you tried to achieve it, and did you manage to achieve that?  - one paragraph}
 We proposed a novel method for normal estimation on point clouds using diffusion on the node features with graph neural networks, and evaluated its performance to see how competitive it is with existing methods. We showed that our method outperforms geometric methods but does not reach the performance of competing deep learning based methods, and does not generalize well to noisy test sets. We also discussed potential reasons for this and suggested future work.
 
 \bibliographystyle{ACM-Reference-Format}
